@@ -49,6 +49,7 @@
 							</environmentVariables>
 							<options>
 								<option>-DSEED=</option>
+								<option>-DDOCUM=</option>
 							</options>
 						</configuration>
 					</execution>
