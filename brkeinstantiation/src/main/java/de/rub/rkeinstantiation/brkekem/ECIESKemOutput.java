@@ -15,8 +15,8 @@ import de.rub.rkeinstantiation.variables.BrkeSymmetricKey;
  */
 public class ECIESKemOutput implements KemOutput {
 
-	BrkeSymmetricKey generatedKey;
-	ECIESKemCiphertext ciphertext;
+	private BrkeSymmetricKey generatedKey;
+	private ECIESKemCiphertext ciphertext;
 
 	public ECIESKemOutput(KeyParameter generatedKey, byte[] ciphertext) {
 		this.generatedKey = new BrkeSymmetricKey(generatedKey.getKey());

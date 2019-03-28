@@ -12,7 +12,7 @@ import de.rub.rke.variables.KeySeed;
  */
 public class BrkeKeySeed implements KeySeed {
 
-	byte[] seed;
+	private byte[] seed;
 
 	public BrkeKeySeed(byte[] seed) {
 		this.seed = Arrays.copyOf(seed, seed.length);

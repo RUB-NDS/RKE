@@ -15,8 +15,8 @@ import de.rub.rkeinstantiation.variables.BrkeSymmetricKey;
  */
 public class BrkeKuKemOutput implements KuKemOutput {
 
-	byte[] key;
-	BrkeKuKemCiphertext ciphertext;
+	private byte[] key;
+	private BrkeKuKemCiphertext ciphertext;
 
 	public BrkeKuKemOutput(byte[] key, BrkeKuKemCiphertext ciphertext) {
 		this.key = Arrays.copyOf(key, key.length);

@@ -13,7 +13,7 @@ import de.rub.rke.kem.KemSecretKey;
  */
 public class ECIESKemSecretKey implements KemSecretKey {
 
-	ECPrivateKeyParameters secretKey;
+	private ECPrivateKeyParameters secretKey;
 
 	public ECIESKemSecretKey(AsymmetricKeyParameter secretKey) {
 		this.secretKey = (ECPrivateKeyParameters) secretKey;

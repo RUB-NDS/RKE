@@ -12,8 +12,8 @@ import de.rub.rke.kukem.KuKemSecretKey;
  */
 public class BrkeKuKemKeyPair implements KuKemKeyPair {
 
-	BrkeKuKemSecretKey secretKey;
-	BrkeKuKemPublicKey publicKey;
+	private BrkeKuKemSecretKey secretKey;
+	private BrkeKuKemPublicKey publicKey;
 
 	public BrkeKuKemKeyPair(BrkeKuKemSecretKey secretKey, BrkeKuKemPublicKey publicKey) {
 		this.secretKey = secretKey;

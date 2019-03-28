@@ -14,7 +14,7 @@ import de.rub.rke.kukem.KuKemAssociatedData;
  *
  */
 public class BrkeKuKemAssociatedData implements KuKemAssociatedData {
-	byte[] associatedData;
+	private byte[] associatedData;
 
 	public BrkeKuKemAssociatedData(byte[] associatedData) {
 		this.associatedData = Arrays.copyOf(associatedData, associatedData.length);

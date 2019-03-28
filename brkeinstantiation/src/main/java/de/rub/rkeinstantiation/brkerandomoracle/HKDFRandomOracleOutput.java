@@ -14,8 +14,8 @@ import de.rub.rkeinstantiation.variables.BrkeSymmetricKey;
  */
 public class HKDFRandomOracleOutput implements KeyedRandomOracleOutput {
 
-	BrkeSymmetricKey sessionKey;
-	BrkeKeySeed keySeed;
+	private BrkeSymmetricKey sessionKey;
+	private BrkeKeySeed keySeed;
 
 	public HKDFRandomOracleOutput(byte[] sessionKey, byte[] keySeed) {
 		this.sessionKey = new BrkeSymmetricKey(sessionKey);

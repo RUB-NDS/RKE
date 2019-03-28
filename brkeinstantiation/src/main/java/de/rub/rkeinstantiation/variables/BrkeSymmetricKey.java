@@ -13,7 +13,7 @@ import de.rub.rkeinstantiation.utility.SymmetricKeyCombiner;
  */
 public class BrkeSymmetricKey implements SymmetricKey {
 
-	byte[] key;
+	private byte[] key;
 
 	public BrkeSymmetricKey(byte[] key) {
 		this.key = Arrays.copyOf(key, key.length);

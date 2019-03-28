@@ -13,7 +13,7 @@ import de.rub.rke.kem.KemPublicKey;
  */
 public class ECIESKemPublicKey implements KemPublicKey {
 
-	ECPublicKeyParameters publicKey;
+	private ECPublicKeyParameters publicKey;
 
 	public ECIESKemPublicKey(AsymmetricKeyParameter publicKey) {
 		this.publicKey = (ECPublicKeyParameters) publicKey;
