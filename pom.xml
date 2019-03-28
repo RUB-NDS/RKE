@@ -10,8 +10,9 @@
 
 	<modules>
 		<module>brkegeneric</module>
-		<module>brkeinstantiation</module>
+		<module>relic-lib</module>
 		<module>hibe-native</module>
+		<module>brkeinstantiation</module>
 	</modules>
 
 	<url>http://maven.apache.org</url>
