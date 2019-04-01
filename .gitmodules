@@ -1,0 +1,3 @@
+[submodule "relic-lib/relic-master"]
+	path = relic-lib/relic-master
+	url = https://github.com/relic-toolkit/relic.git
