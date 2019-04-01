@@ -48,6 +48,7 @@
 								<key>value</key>
 							</environmentVariables>
 							<options>
+								<option>-DCOMP=-O2 -funroll-loops -fomit-frame-pointer -fPIC</option>
 								<option>-DSEED=</option>
 								<option>-DDOCUM=</option>
 							</options>
