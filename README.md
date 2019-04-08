@@ -20,5 +20,5 @@ If everything is set up properly, the standard maven commands should work to com
  
 You can compile the project by calling
 `mvn compile`
-And run the Unit tests by calling
-`mvn test`
+and run the Unit tests by calling
+`mvn test`.
