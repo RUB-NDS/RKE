@@ -26,6 +26,7 @@
 			<groupId>de.rub.rke</groupId>
 			<artifactId>hibe-native</artifactId>
 			<version>1.0</version>
+			<type>so</type>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
