@@ -3,6 +3,8 @@ package de.rub.rkeinstantiation.hibewrapper;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
+import cz.adamh.utils.NativeUtils;
+import java.io.*;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator;
@@ -21,11 +23,11 @@ import org.bouncycastle.crypto.params.KeyParameter;
  * use the CPA -> CCA transformation described in [4].
  * 
  * [1] Unbounded HIBE and Attribute-Based Encryption
- * https://link.springer.com/content/pdf/10.1007/978-3-642-20465-4_30.pdf 
- * [2]Tools for Simulating Features of Composite Order Bilinear Groups in the Prime
- * Order Setting
- * https://link.springer.com/content/pdf/10.1007/978-3-642-29011-4_20.pdf 
- * [3]Asynchronous ratcheted key exchange https://eprint.iacr.org/2018/296.pdf 
+ * https://link.springer.com/content/pdf/10.1007/978-3-642-20465-4_30.pdf
+ * [2]Tools for Simulating Features of Composite Order Bilinear Groups in the
+ * Prime Order Setting
+ * https://link.springer.com/content/pdf/10.1007/978-3-642-29011-4_20.pdf
+ * [3]Asynchronous ratcheted key exchange https://eprint.iacr.org/2018/296.pdf
  * [4]Chosen-Ciphertext Security from Identity-Based Encryption
  * http://boneh.com/pubs/papers/ccaibejour.pdf
  * 
@@ -90,7 +92,11 @@ public class Hibe {
 	 * @param hashForHmac          - hash function, which is used for the HMac
 	 */
 	public Hibe(int sizeOfIdentityData, Digest hashForEncapsulation, Digest hashForKeyGen, Digest hashForHmac) {
-		System.loadLibrary("lwhibe11");
+		try {
+			NativeUtils.loadLibraryFromJar("/liblwhibe11.so");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		sizeOfG1 = getSizeOfG1();
 		sizeOfG2 = getSizeOfG2();
 		sizeOfcompressedGT = getSizeOfGT();
@@ -109,7 +115,11 @@ public class Hibe {
 	 * @param sizeOfIdentityData - Size of the data used as identity information
 	 */
 	public Hibe(int sizeOfIdentityData) {
-		System.loadLibrary("lwhibe11");
+		try {
+			NativeUtils.loadLibraryFromJar("/liblwhibe11.so");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		sizeOfG1 = getSizeOfG1();
 		sizeOfG2 = getSizeOfG2();
 		sizeOfcompressedGT = getSizeOfGT();
