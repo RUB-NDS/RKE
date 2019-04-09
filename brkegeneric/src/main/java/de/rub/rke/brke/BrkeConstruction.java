@@ -55,12 +55,12 @@ public class BrkeConstruction {
 
 	/**
 	 * Perform the send algorithm of the Brke construction.
-	 * 
-	 * @param ad         - associatedData
 	 * @param randomness - randomness used for key generation
+	 * @param ad         - associatedData
+	 * 
 	 * @return BrkeSendOutput containing session key and Brke ciphertext
 	 */
-	public BrkeSendOutput send(AssociatedData ad, SecureRandom randomness) {
+	public BrkeSendOutput send(SecureRandom randomness, AssociatedData ad) {
 		KuKemPublicKey kuKemPublicKey = queuedKuKemAlgorithm.gen(randomness);
 		SignatureVerificationKey signatureVerificationKey = signatureAlgorithm.gen(randomness);
 

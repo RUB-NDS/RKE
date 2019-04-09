@@ -375,14 +375,14 @@ public class TestBrke {
 		 * purpose.
 		 */
 		for (int i = 0; i < 20; i++) {
-			sendOutputA[i] = brkeUserA.send(associatedData, randomnessSendA);
+			sendOutputA[i] = brkeUserA.send(randomnessSendA, associatedData);
 			if (rng.nextBoolean()) {
 				for (int j = lastReceivedMessageB + 1; j <= i; j++) {
 					receiveOutputB[j] = brkeUserB.receive(associatedData, sendOutputA[j].getCiphertext());
 				}
 				lastReceivedMessageB = i;
 			}
-			sendOutputB[i] = brkeUserB.send(associatedData, randomnessSendB);
+			sendOutputB[i] = brkeUserB.send(randomnessSendB, associatedData);
 			if (rng.nextBoolean()) {
 				for (int j = lastReceivedMessageA + 1; j <= i; j++) {
 					receiveOutputA[j] = brkeUserA.receive(associatedData, sendOutputB[j].getCiphertext());
