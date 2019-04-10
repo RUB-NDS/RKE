@@ -18,7 +18,7 @@ public class BrkeAssociatedData implements AssociatedData {
 		this.associatedData = Arrays.copyOf(associatedData, associatedData.length);
 	}
 
-	public byte[] getAsByte() {
+	public byte[] getAsBytes() {
 		return associatedData;
 	}
 }

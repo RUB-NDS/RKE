@@ -18,12 +18,12 @@ public class BrkeKuKemFactory implements KuKemFactory {
 	 * Specifies the Size of the identity data. Has to match with the size of the
 	 * BrkeKuKemAssociatedData.
 	 */
-	private final int identitiySize = 32;
+	private final int IDENTITIY_SIZE = 32;
 
 	@Override
 	public KeyUpdateableKem createKuKemAlgorithm() {
 		SecureRandom randomness = new SecureRandom();
-		return new BrkeKuKem(randomness, identitiySize);
+		return new BrkeKuKem(randomness, IDENTITIY_SIZE);
 	}
 
 }

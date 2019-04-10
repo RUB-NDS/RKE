@@ -148,8 +148,8 @@ public class TestBrkeInstantiation {
 		 */
 		assertArrayEquals(((BrkeSymmetricKey) randomOracleOutputA.getSessionKey()).getKeyBytes(),
 				((BrkeSymmetricKey) randomOracleOutputB.getSessionKey()).getKeyBytes());
-		assertArrayEquals(randomOracleOutputA.getSecretKeySeed().getSeedAsByte(),
-				randomOracleOutputB.getSecretKeySeed().getSeedAsByte());
+		assertArrayEquals(randomOracleOutputA.getSecretKeySeed().getSeedAsBytes(),
+				randomOracleOutputB.getSecretKeySeed().getSeedAsBytes());
 	}
 
 	/**

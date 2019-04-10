@@ -63,7 +63,7 @@ public class BrkeKuKem implements KeyUpdateableKem {
 	 */
 	@Override
 	public KuKemKeyPair gen(KeySeed seed) {
-		SecureRandom randomness = new SecureRandom(seed.getSeedAsByte());
+		SecureRandom randomness = new SecureRandom(seed.getSeedAsBytes());
 		byte[] initialIdentity = new byte[identitySize];
 		for (int i = 0; i < identitySize; i++) {
 			initialIdentity[i] = 1;

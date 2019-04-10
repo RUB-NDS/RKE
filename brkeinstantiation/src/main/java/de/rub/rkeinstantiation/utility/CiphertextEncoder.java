@@ -41,7 +41,7 @@ public class CiphertextEncoder {
 		SHA512Digest hash = new SHA512Digest();
 		byte[] output = new byte[hash.getDigestSize()];
 
-		byte associatedData[] = ((BrkeAssociatedData) ad).getAsByte();
+		byte associatedData[] = ((BrkeAssociatedData) ad).getAsBytes();
 		BrkeKuKemPublicKey kuKemPublicKey = (BrkeKuKemPublicKey) ciphertext.getPublicKey();
 		DLPChameleonVerificationKey verificationKey = (DLPChameleonVerificationKey) ciphertext.getVerificationKey();
 		QueuedKuKemCiphertext queuedKuKemCiphertext = ciphertext.getCiphertext();
@@ -179,7 +179,7 @@ public class CiphertextEncoder {
 		SHA512Digest hash = new SHA512Digest();
 		byte[] output = new byte[hash.getDigestSize()];
 
-		byte associatedData[] = ((BrkeAssociatedData) ad).getAsByte();
+		byte associatedData[] = ((BrkeAssociatedData) ad).getAsBytes();
 		BrkeKuKemPublicKey kuKemPublicKey = (BrkeKuKemPublicKey) publicKey;
 		DLPChameleonVerificationKey dlpVerificationKey = (DLPChameleonVerificationKey) verificationKey;
 		ECIESKemCiphertext kemCiphertext = (ECIESKemCiphertext) queuedKuKemCiphertext.getKemCiphertext();

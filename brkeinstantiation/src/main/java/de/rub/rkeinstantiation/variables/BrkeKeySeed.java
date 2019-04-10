@@ -19,7 +19,7 @@ public class BrkeKeySeed implements KeySeed {
 	}
 
 	@Override
-	public byte[] getSeedAsByte() {
+	public byte[] getSeedAsBytes() {
 		return seed;
 	}
 

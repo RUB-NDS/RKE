@@ -18,8 +18,8 @@ public class HKDFRandomOracleFactory implements KeyedRandomOracleFactory {
 	 * Specifies the internal and generated Key Size for the HKDF Random Oracle (in
 	 * Bytes)
 	 */
-	private final int generatedKeySize = 16;
-	private final int internalKeySize = 16;
+	private final int GENERATED_KEY_SIZE = 16;
+	private final int INTERNAL_KEY_SIZE = 16;
 
 	/**
 	 * Creates a HKDF-Based Random Oracle, which uses SHA256.
@@ -27,7 +27,7 @@ public class HKDFRandomOracleFactory implements KeyedRandomOracleFactory {
 	@Override
 	public KeyedRandomOracle createKeyedRandomOracleAlgorithm() {
 		SHA256Digest hash = new SHA256Digest();
-		return new HKDFRandomOracle(hash, internalKeySize, generatedKeySize);
+		return new HKDFRandomOracle(hash, INTERNAL_KEY_SIZE, GENERATED_KEY_SIZE);
 	}
 
 }
