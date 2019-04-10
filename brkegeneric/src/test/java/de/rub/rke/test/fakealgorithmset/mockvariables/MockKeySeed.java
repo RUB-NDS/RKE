@@ -23,7 +23,7 @@ public class MockKeySeed implements KeySeed {
 	}
 
 	@Override
-	public byte[] getSeedAsByte() {
+	public byte[] getSeedAsBytes() {
 
 		return null;
 	}
