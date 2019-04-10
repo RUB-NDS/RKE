@@ -14,13 +14,26 @@ import de.rub.rke.variables.SymmetricKey;
 import de.rub.rke.variables.Transcript;
 
 /**
- * Class for the BRKE construction
+ * Class that implements the BRKE construction proposed in [1].
+ * 
+ * [1]Asynchronous ratcheted key exchange https://eprint.iacr.org/2018/296.pdf
  * 
  * @author Marco Smeets
  *
  */
 public class BrkeConstruction {
 
+	/**
+	 * receivingTranscript realizes the t_R transcript, and sendingTranscript
+	 * realizes the t_S transcript from the BRKE construction[1].
+	 * 
+	 * Epochs(E_R, E_S)[1] are handled by queues inside the respective algorithm
+	 * classes.
+	 * 
+	 * Transcript L_R[1] is stored inside the receiving transcript as an update
+	 * queue, and transcript L_S[1] is stored inside the queued kuKem for a key
+	 * update queue.
+	 */
 	private SignatureAlgorithm signatureAlgorithm;
 	private KeyedRandomOracle randomOracleAlgorithm;
 	private QueuedKuKem queuedKuKemAlgorithm;
@@ -55,6 +68,7 @@ public class BrkeConstruction {
 
 	/**
 	 * Perform the send algorithm of the Brke construction.
+	 * 
 	 * @param randomness - randomness used for key generation
 	 * @param ad         - associatedData
 	 * 
