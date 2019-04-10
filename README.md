@@ -18,7 +18,7 @@ We chose the following algorithms for our implementation:
 ### Building
 If everything is set up properly, the standard maven commands should work to compile and test the project.
  
-You can compile the project by calling
-`mvn compile`
+You can compile and install the project by calling
+`mvn install`
 and run the Unit tests by calling
 `mvn test`.
