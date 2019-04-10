@@ -70,17 +70,7 @@ public class HKDFRandomOracle implements KeyedRandomOracle {
 	public KeyedRandomOracleOutput querySendRandomOracle(SymmetricKey kemOutputKey, Transcript transcript) {
 		byte kemKey[] = ((BrkeSymmetricKey) kemOutputKey).getKeyBytes();
 		byte transcriptState[] = ((BrkeTranscript) transcript).getTranscriptState();
-		byte hkdfInput[] = new byte[kemKey.length + transcriptState.length + internalKeySize];
-		System.arraycopy(kemKey, 0, hkdfInput, 0, kemKey.length);
-		System.arraycopy(transcriptState, 0, hkdfInput, kemKey.length, transcriptState.length);
-		System.arraycopy(chainingKeySend, 0, hkdfInput, kemKey.length + transcriptState.length, internalKeySize);
-		hkdfGenerator.init(new HKDFParameters(hkdfInput, null, null));
-		byte[] sessionKey = new byte[generatedKeySize];
-		byte[] keySeed = new byte[generatedKeySize];
-		hkdfGenerator.generateBytes(sessionKey, 0, generatedKeySize);
-		hkdfGenerator.generateBytes(keySeed, 0, generatedKeySize);
-		hkdfGenerator.generateBytes(chainingKeySend, 0, internalKeySize);
-		return new HKDFRandomOracleOutput(sessionKey, keySeed);
+		return generateOutputAndUpdateChainingKey(true, kemKey, transcriptState);
 	}
 
 	/**
@@ -90,16 +80,38 @@ public class HKDFRandomOracle implements KeyedRandomOracle {
 	public KeyedRandomOracleOutput queryReceiveRandomOracle(SymmetricKey kemOutputKey, Transcript transcript) {
 		byte kemKey[] = ((BrkeSymmetricKey) kemOutputKey).getKeyBytes();
 		byte transcriptState[] = ((BrkeTranscript) transcript).getTranscriptState();
+		return generateOutputAndUpdateChainingKey(false, kemKey, transcriptState);
+	}
+
+	/**
+	 * This function produces the output of the random oracle (hkdf generator) and
+	 * updates the correct internal key.
+	 * 
+	 * @param sendOracle      - true if called by sendOracle, false otherwise
+	 * @param kemKey
+	 * @param transcriptState
+	 * @return hkdf output
+	 */
+	private HKDFRandomOracleOutput generateOutputAndUpdateChainingKey(boolean sendOracle, byte[] kemKey,
+			byte[] transcriptState) {
 		byte hkdfInput[] = new byte[kemKey.length + transcriptState.length + internalKeySize];
 		System.arraycopy(kemKey, 0, hkdfInput, 0, kemKey.length);
 		System.arraycopy(transcriptState, 0, hkdfInput, kemKey.length, transcriptState.length);
-		System.arraycopy(chainingKeyReceive, 0, hkdfInput, kemKey.length + transcriptState.length, internalKeySize);
+		if (sendOracle) {
+			System.arraycopy(chainingKeySend, 0, hkdfInput, kemKey.length + transcriptState.length, internalKeySize);
+		} else {
+			System.arraycopy(chainingKeyReceive, 0, hkdfInput, kemKey.length + transcriptState.length, internalKeySize);
+		}
 		hkdfGenerator.init(new HKDFParameters(hkdfInput, null, null));
 		byte[] sessionKey = new byte[generatedKeySize];
 		byte[] keySeed = new byte[generatedKeySize];
 		hkdfGenerator.generateBytes(sessionKey, 0, generatedKeySize);
 		hkdfGenerator.generateBytes(keySeed, 0, generatedKeySize);
-		hkdfGenerator.generateBytes(chainingKeyReceive, 0, internalKeySize);
+		if (sendOracle) {
+			hkdfGenerator.generateBytes(chainingKeySend, 0, internalKeySize);
+		} else {
+			hkdfGenerator.generateBytes(chainingKeyReceive, 0, internalKeySize);
+		}
 		return new HKDFRandomOracleOutput(sessionKey, keySeed);
 	}
 
