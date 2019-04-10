@@ -42,6 +42,14 @@ public class ECIESKeyEncapsulationMechanism implements KeyEncapsulationMechanism
 	private ECDomainParameters ecParameter;
 	private int ciphertextSize;
 	private int generatedKeyLength;
+	/**
+	 * To calculate the size of the ciphertext, we have to calculate the size of an encoded point.
+	 * We use the following formula for a point P on a curve for ECIES-Kem[1]:
+	 *  1+2*(log_256(F)) , where F is the field size.
+	 */
+	final int BYTE_SIZE = 8;
+	final int TWO = 2;
+	final int ONE = 1;
 
 	/**
 	 * Creates an ECIES Kem. Uses the provided elliptic curve and key derivation
@@ -56,7 +64,7 @@ public class ECIESKeyEncapsulationMechanism implements KeyEncapsulationMechanism
 			SecureRandom randomness, int generatedKeyLength) {
 		eciesKem = new ECIESKeyEncapsulation(kdf, randomness);
 		this.ecParameter = ecParameter;
-		ciphertextSize = (ecParameter.getCurve().getFieldSize() / 8) * 2 + 1;
+		ciphertextSize = (ecParameter.getCurve().getFieldSize() / BYTE_SIZE) * TWO + ONE;
 		this.generatedKeyLength = generatedKeyLength;
 	}
 
@@ -71,7 +79,7 @@ public class ECIESKeyEncapsulationMechanism implements KeyEncapsulationMechanism
 	@Override
 	public KemKeyPair gen(KeySeed seed) {
 		SecureRandom randomness = SecureRandomBuilder.createSeedableRandomness();
-		randomness.setSeed(seed.getSeedAsByte());
+		randomness.setSeed(seed.getSeedAsBytes());
 		ECKeyPairGenerator keyPairGenerator = new ECKeyPairGenerator();
 		keyPairGenerator.init(new ECKeyGenerationParameters(ecParameter, randomness));
 		AsymmetricCipherKeyPair keyPair = keyPairGenerator.generateKeyPair();
