@@ -23,16 +23,22 @@ import de.rub.rke.variables.KeySeed;
 import de.rub.rke.variables.SymmetricKey;
 
 /**
- * Class that implements the kuKem functions in the Brke construction. The
+ * Class that implements the kuKem functions in the Brke construction[1]. The
  * QueuedKuKem holds all keys and is responsible for key
  * updates/encapsulation/decapsulation It saves it's own secret Keys and the
  * public Keys of the communication Partner.
+ * 
+ * [1]Asynchronous ratcheted key exchange https://eprint.iacr.org/2018/296.pdf
  * 
  * @author Marco Smeets
  *
  */
 public class QueuedKuKem {
 
+	/**
+	 * The publicKeyUpdateInformationList represents the transcript L_S from the
+	 * BRKE construction[1].
+	 */
 	private KeyUpdateableKem kuKemAlgorithm;
 	private KeyEncapsulationMechanism kemAlgorithm;
 	private KuKemAssociatedDataFactory associatedDataFactory;
@@ -40,7 +46,7 @@ public class QueuedKuKem {
 	private KemPublicKey communicationPartnerKemPublicKey;
 	private Queue<KuKemSecretKey> secretKeys;
 	private Queue<KuKemPublicKey> communicationPartnerPublicKeys;
-	private LinkedList<KuKemAssociatedData> publicKeyUpdateInformationQueue;
+	private LinkedList<KuKemAssociatedData> publicKeyUpdateInformationList;
 
 	/**
 	 * Constructor
@@ -54,7 +60,7 @@ public class QueuedKuKem {
 		this.associatedDataFactory = associatedDataFactory;
 		secretKeys = new LinkedList<KuKemSecretKey>();
 		communicationPartnerPublicKeys = new LinkedList<KuKemPublicKey>();
-		publicKeyUpdateInformationQueue = new LinkedList<KuKemAssociatedData>();
+		publicKeyUpdateInformationList = new LinkedList<KuKemAssociatedData>();
 	}
 
 	/**
@@ -184,12 +190,12 @@ public class QueuedKuKem {
 	 * @param NumberOfUpdates           - number of required updates
 	 */
 	public void addUpdatedPublicKey(KuKemPublicKey publicKey, int messagesReceivedByPartner, int NumberOfUpdates) {
-		while (messagesReceivedByPartner != 0) {
-			publicKeyUpdateInformationQueue.remove();
+		while (messagesReceivedByPartner > 0) {
+			publicKeyUpdateInformationList.remove();
 			messagesReceivedByPartner--;
 		}
 		for (int i = 0; i < NumberOfUpdates; i++) {
-			publicKey = kuKemAlgorithm.updatePublicKey(publicKey, publicKeyUpdateInformationQueue.get(i));
+			publicKey = kuKemAlgorithm.updatePublicKey(publicKey, publicKeyUpdateInformationList.get(i));
 		}
 		communicationPartnerPublicKeys.add(publicKey);
 	}
@@ -202,7 +208,7 @@ public class QueuedKuKem {
 	 * @param ciphertext
 	 */
 	public void addToPublicKeyUpdateInformationQueue(AssociatedData ad, BrkeCiphertext ciphertext) {
-		publicKeyUpdateInformationQueue.add(associatedDataFactory.createAssociatedData(ad, ciphertext));
+		publicKeyUpdateInformationList.add(associatedDataFactory.createAssociatedData(ad, ciphertext));
 	}
 
 	/**
