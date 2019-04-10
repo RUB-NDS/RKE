@@ -10,5 +10,5 @@ package de.rub.rke.variables;
  */
 public interface KeySeed {
 
-	public byte[] getSeedAsByte();
+	public byte[] getSeedAsBytes();
 }

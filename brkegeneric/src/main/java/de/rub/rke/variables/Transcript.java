@@ -11,6 +11,10 @@ import de.rub.rke.brke.BrkeCiphertext;
  * transcript if the user (brke construction) can be sure the communication
  * partner has received the messages.
  * 
+ * The update queue represents the transcript L_R from the BRKE construction[1].
+ * 
+ * [1]Asynchronous ratcheted key exchange https://eprint.iacr.org/2018/296.pdf
+ * 
  * @author Marco Smeets
  *
  */
