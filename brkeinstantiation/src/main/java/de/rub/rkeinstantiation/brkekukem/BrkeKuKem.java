@@ -74,8 +74,8 @@ public class BrkeKuKem implements KeyUpdateableKem {
 	}
 
 	/**
-	 * I don't think we can generate a public key from a secret key with the
-	 * LW-Hibe. But this function is not used anyway.
+	 * This function is not used by our version of the brke construction, since
+	 * we directly use a seed to generate a (sk,pk)-pair.
 	 */
 	@Override
 	public KuKemPublicKey gen(KuKemSecretKey secretKey) {
