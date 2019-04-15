@@ -46,10 +46,11 @@ public class ECIESKeyEncapsulationMechanism implements KeyEncapsulationMechanism
 	 * To calculate the size of the ciphertext, we have to calculate the size of an encoded point.
 	 * We use the following formula for a point P on a curve for ECIES-Kem[1]:
 	 *  1+2*(log_256(F)) , where F is the field size.
+	 *  We store two coordinates (x & y) and one byte of information, wether the point is compressed or not.
 	 */
-	final int BYTE_SIZE = 8;
-	final int TWO = 2;
-	final int ONE = 1;
+	private final int SIZE_OF_BYTE = 8;
+	private final int NUMBER_OF_COORDINATES = 2;
+	private final int SIZE_OF_COMPRESSION_INFO = 1;
 
 	/**
 	 * Creates an ECIES Kem. Uses the provided elliptic curve and key derivation
@@ -64,7 +65,7 @@ public class ECIESKeyEncapsulationMechanism implements KeyEncapsulationMechanism
 			SecureRandom randomness, int generatedKeyLength) {
 		eciesKem = new ECIESKeyEncapsulation(kdf, randomness);
 		this.ecParameter = ecParameter;
-		ciphertextSize = (ecParameter.getCurve().getFieldSize() / BYTE_SIZE) * TWO + ONE;
+		ciphertextSize = (ecParameter.getCurve().getFieldSize() / SIZE_OF_BYTE) * NUMBER_OF_COORDINATES + SIZE_OF_COMPRESSION_INFO;
 		this.generatedKeyLength = generatedKeyLength;
 	}
 
