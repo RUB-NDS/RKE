@@ -36,7 +36,7 @@ import de.rub.rke.test.fakealgorithmset.mockkukem.MockKuKemPublicKey;
 import de.rub.rke.test.fakealgorithmset.mockkukem.MockKuKemSecretKey;
 import de.rub.rke.test.fakealgorithmset.mockrandomoracle.MockRandomOracle;
 import de.rub.rke.test.fakealgorithmset.mockrandomoracle.MockRandomOracleOutput;
-import de.rub.rke.test.fakealgorithmset.mocksignature.MockSignatureAlgorithm;
+import de.rub.rke.test.fakealgorithmset.mocksignature.MockSignatureManager;
 import de.rub.rke.test.fakealgorithmset.mockvariables.MockAssociatedData;
 import de.rub.rke.test.fakealgorithmset.mockvariables.MockKeySeed;
 import de.rub.rke.test.fakealgorithmset.mockvariables.MockSymmetricKey;
@@ -80,7 +80,7 @@ public class TestBrke {
 		 * Construct simple Brke Ciphertext and Associated Data to test key updates
 		 */
 		MockSignatureFactory signatureFactory = new MockSignatureFactory();
-		MockSignatureAlgorithm signatureScheme = (MockSignatureAlgorithm) signatureFactory.createSignatureAlgorithm();
+		MockSignatureManager signatureScheme = (MockSignatureManager) signatureFactory.createSignatureManager();
 		signatureScheme.init(randomness, true);
 		SignatureVerificationKey signatureVerificationKey = signatureScheme.gen(randomness);
 
@@ -178,8 +178,8 @@ public class TestBrke {
 		randomnessA.setSeed(randomnessSeed);
 		randomnessB.setSeed(randomnessSeed);
 
-		MockSignatureAlgorithm signatureSchemeA = (MockSignatureAlgorithm) signatureFactory.createSignatureAlgorithm();
-		MockSignatureAlgorithm signatureSchemeB = (MockSignatureAlgorithm) signatureFactory.createSignatureAlgorithm();
+		MockSignatureManager signatureSchemeA = (MockSignatureManager) signatureFactory.createSignatureManager();
+		MockSignatureManager signatureSchemeB = (MockSignatureManager) signatureFactory.createSignatureManager();
 		MockKeyUpdateableKem kuKem = (MockKeyUpdateableKem) kukemFactory.createKuKemAlgorithm();
 
 		signatureSchemeA.init(randomnessA, true);
@@ -231,7 +231,7 @@ public class TestBrke {
 		MockSignatureFactory signatureFactory = new MockSignatureFactory();
 		MockRandomOracleFactory randomOracleFactory = new MockRandomOracleFactory();
 
-		MockSignatureAlgorithm signatureScheme = (MockSignatureAlgorithm) signatureFactory.createSignatureAlgorithm();
+		MockSignatureManager signatureScheme = (MockSignatureManager) signatureFactory.createSignatureManager();
 		MockKeyUpdateableKem kuKem = (MockKeyUpdateableKem) kukemFactory.createKuKemAlgorithm();
 
 		SecureRandom randomness = new SecureRandom();

@@ -1,6 +1,6 @@
 package de.rub.rke.factories;
 
-import de.rub.rke.signature.SignatureAlgorithm;
+import de.rub.rke.signature.SignatureManager;
 
 /**
  * Factory for the Signature
@@ -15,5 +15,5 @@ public interface SignatureFactory {
 	 * 
 	 * @return Signature object
 	 */
-	public SignatureAlgorithm createSignatureAlgorithm();
+	public SignatureManager createSignatureManager();
 }

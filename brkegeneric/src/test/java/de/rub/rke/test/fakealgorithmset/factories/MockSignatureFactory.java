@@ -1,8 +1,8 @@
 package de.rub.rke.test.fakealgorithmset.factories;
 
 import de.rub.rke.factories.SignatureFactory;
-import de.rub.rke.signature.SignatureAlgorithm;
-import de.rub.rke.test.fakealgorithmset.mocksignature.MockSignatureAlgorithm;
+import de.rub.rke.signature.SignatureManager;
+import de.rub.rke.test.fakealgorithmset.mocksignature.MockSignatureManager;
 
 /**
  * Implementation of SignatureFactory that returns a mock Signature
@@ -13,8 +13,8 @@ import de.rub.rke.test.fakealgorithmset.mocksignature.MockSignatureAlgorithm;
 public class MockSignatureFactory implements SignatureFactory {
 
 	@Override
-	public SignatureAlgorithm createSignatureAlgorithm() {
-		return new MockSignatureAlgorithm();
+	public SignatureManager createSignatureManager() {
+		return new MockSignatureManager();
 	}
 
 }

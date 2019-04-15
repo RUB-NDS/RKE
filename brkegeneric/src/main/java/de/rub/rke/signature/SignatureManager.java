@@ -9,7 +9,8 @@ import de.rub.rke.variables.AssociatedData;
 import de.rub.rke.variables.KeySeed;
 
 /**
- * Interface for the signature algorithm used by the Brke construction.
+ * Interface for the signature manager used by the Brke construction. This class manages
+ * the interaction between the BRKE construction and the signature algorithm.
  * 
  * The class saves a queue (at most two) signing keys, and the verification key
  * of the communication partner.
@@ -17,7 +18,7 @@ import de.rub.rke.variables.KeySeed;
  * @author Marco Smeets
  *
  */
-public interface SignatureAlgorithm {
+public interface SignatureManager {
 
 	/**
 	 * Initializes the Signature Algorithm.

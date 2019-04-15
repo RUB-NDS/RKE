@@ -15,7 +15,7 @@ import org.bouncycastle.crypto.params.DHPrivateKeyParameters;
 import de.rub.rke.brke.BrkeCiphertext;
 import de.rub.rke.kukem.KuKemPublicKey;
 import de.rub.rke.queuedkukem.QueuedKuKemCiphertext;
-import de.rub.rke.signature.SignatureAlgorithm;
+import de.rub.rke.signature.SignatureManager;
 import de.rub.rke.signature.SignatureOutput;
 import de.rub.rke.signature.SignatureVerificationKey;
 import de.rub.rke.variables.AssociatedData;
@@ -34,7 +34,7 @@ import de.rub.rkeinstantiation.utility.CiphertextEncoder;
  * @author Marco Smeets
  *
  */
-public class DLPChameleonOTSignatureAlgorithm implements SignatureAlgorithm {
+public class DLPChameleonOTSignatureManager implements SignatureManager {
 
 	private DHParameters groupParameters;
 	private Digest hash;
@@ -57,7 +57,7 @@ public class DLPChameleonOTSignatureAlgorithm implements SignatureAlgorithm {
 	 * @param groupParameters - Diffie Hellman group parameter
 	 * @param hash            - hash function
 	 */
-	public DLPChameleonOTSignatureAlgorithm(DHParameters groupParameters, Digest hash) {
+	public DLPChameleonOTSignatureManager(DHParameters groupParameters, Digest hash) {
 		this.groupParameters = groupParameters;
 		this.hash = hash;
 		p = groupParameters.getP();

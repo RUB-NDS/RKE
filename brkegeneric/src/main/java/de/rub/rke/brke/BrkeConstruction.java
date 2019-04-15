@@ -7,7 +7,7 @@ import de.rub.rke.queuedkukem.QueuedKuKem;
 import de.rub.rke.queuedkukem.QueuedKuKemOutput;
 import de.rub.rke.randomoracle.KeyedRandomOracle;
 import de.rub.rke.randomoracle.KeyedRandomOracleOutput;
-import de.rub.rke.signature.SignatureAlgorithm;
+import de.rub.rke.signature.SignatureManager;
 import de.rub.rke.signature.SignatureVerificationKey;
 import de.rub.rke.variables.AssociatedData;
 import de.rub.rke.variables.SymmetricKey;
@@ -34,7 +34,7 @@ public class BrkeConstruction {
 	 * queue, and transcript L_S[1] is stored inside the queued kuKem for a key
 	 * update queue.
 	 */
-	private SignatureAlgorithm signatureAlgorithm;
+	private SignatureManager signatureAlgorithm;
 	private KeyedRandomOracle randomOracleAlgorithm;
 	private QueuedKuKem queuedKuKemAlgorithm;
 	private int numberOfUnsynchronizedSentMesssages;
@@ -52,7 +52,7 @@ public class BrkeConstruction {
 	 * @param initiator    - true (if initiator of conversation; false otherwise)
 	 */
 	public BrkeConstruction(SecureRandom randomness, BrkeAlgorithmSet algorithmSet, boolean initiator) {
-		signatureAlgorithm = algorithmSet.getSignatureFactory().createSignatureAlgorithm();
+		signatureAlgorithm = algorithmSet.getSignatureFactory().createSignatureManager();
 		randomOracleAlgorithm = algorithmSet.getKeyedRandomOracleFactory().createKeyedRandomOracleAlgorithm();
 		queuedKuKemAlgorithm = new QueuedKuKem(algorithmSet.getKuKemFactory().createKuKemAlgorithm(),
 				algorithmSet.getKemFactory().createKem(), algorithmSet.getAssociatedDataFactory());

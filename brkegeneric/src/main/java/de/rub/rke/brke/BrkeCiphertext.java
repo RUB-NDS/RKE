@@ -2,7 +2,7 @@ package de.rub.rke.brke;
 
 import de.rub.rke.kukem.KuKemPublicKey;
 import de.rub.rke.queuedkukem.QueuedKuKemCiphertext;
-import de.rub.rke.signature.SignatureAlgorithm;
+import de.rub.rke.signature.SignatureManager;
 import de.rub.rke.signature.SignatureOutput;
 import de.rub.rke.signature.SignatureVerificationKey;
 import de.rub.rke.variables.AssociatedData;
@@ -43,7 +43,7 @@ public class BrkeCiphertext {
 	 * 
 	 * @param signature
 	 */
-	public void computeSignature(SignatureAlgorithm signatureAlgorithm, AssociatedData ad) {
+	public void computeSignature(SignatureManager signatureAlgorithm, AssociatedData ad) {
 		this.signature = signatureAlgorithm.sign(ad, numberOfReceivedMessages, publicKey, verificationKey,
 				numberOfUsedKeys, ciphertext);
 	}

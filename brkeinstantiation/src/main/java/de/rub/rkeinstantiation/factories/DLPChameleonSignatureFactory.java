@@ -5,8 +5,8 @@ import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.params.DHParameters;
 
 import de.rub.rke.factories.SignatureFactory;
-import de.rub.rke.signature.SignatureAlgorithm;
-import de.rub.rkeinstantiation.brkesignature.DLPChameleonOTSignatureAlgorithm;
+import de.rub.rke.signature.SignatureManager;
+import de.rub.rkeinstantiation.brkesignature.DLPChameleonOTSignatureManager;
 
 /**
  * Factory for the DLP-Based Signature.
@@ -28,10 +28,10 @@ public class DLPChameleonSignatureFactory implements SignatureFactory {
 	 * prime, as recommended in [2].
 	 */
 	@Override
-	public SignatureAlgorithm createSignatureAlgorithm() {
+	public SignatureManager createSignatureManager() {
 		DHParameters groupParameters = DHStandardGroups.rfc7919_ffdhe3072;
 		SHA256Digest hash = new SHA256Digest();
-		return new DLPChameleonOTSignatureAlgorithm(groupParameters, hash);
+		return new DLPChameleonOTSignatureManager(groupParameters, hash);
 	}
 
 }

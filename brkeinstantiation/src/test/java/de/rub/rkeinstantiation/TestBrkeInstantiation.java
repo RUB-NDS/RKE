@@ -37,7 +37,7 @@ import de.rub.rkeinstantiation.brkekukem.BrkeKuKemPublicKey;
 import de.rub.rkeinstantiation.brkekukem.BrkeKuKemSecretKey;
 import de.rub.rkeinstantiation.brkerandomoracle.HKDFRandomOracle;
 import de.rub.rkeinstantiation.brkerandomoracle.HKDFRandomOracleOutput;
-import de.rub.rkeinstantiation.brkesignature.DLPChameleonOTSignatureAlgorithm;
+import de.rub.rkeinstantiation.brkesignature.DLPChameleonOTSignatureManager;
 import de.rub.rkeinstantiation.brkesignature.DLPChameleonVerificationKey;
 import de.rub.rkeinstantiation.factories.BrkeKuKemAssociatedDataFactory;
 import de.rub.rkeinstantiation.factories.BrkeKuKemFactory;
@@ -73,10 +73,10 @@ public class TestBrkeInstantiation {
 		randomnessB.setSeed(seed);
 		DLPChameleonSignatureFactory signatureFactory = new DLPChameleonSignatureFactory();
 
-		DLPChameleonOTSignatureAlgorithm signatureAlgorithmA = (DLPChameleonOTSignatureAlgorithm) signatureFactory
-				.createSignatureAlgorithm();
-		DLPChameleonOTSignatureAlgorithm signatureAlgorithmB = (DLPChameleonOTSignatureAlgorithm) signatureFactory
-				.createSignatureAlgorithm();
+		DLPChameleonOTSignatureManager signatureAlgorithmA = (DLPChameleonOTSignatureManager) signatureFactory
+				.createSignatureManager();
+		DLPChameleonOTSignatureManager signatureAlgorithmB = (DLPChameleonOTSignatureManager) signatureFactory
+				.createSignatureManager();
 
 		signatureAlgorithmA.init(randomnessA, true);
 		signatureAlgorithmB.init(randomnessB, false);
@@ -400,8 +400,8 @@ public class TestBrkeInstantiation {
 
 		QueuedKuKemCiphertext queuedKuKemCiphertext = new QueuedKuKemCiphertext(ciphertext, 1, null);
 		DLPChameleonSignatureFactory signatureFactory = new DLPChameleonSignatureFactory();
-		DLPChameleonOTSignatureAlgorithm signatureAlgorithm = (DLPChameleonOTSignatureAlgorithm) signatureFactory
-				.createSignatureAlgorithm();
+		DLPChameleonOTSignatureManager signatureAlgorithm = (DLPChameleonOTSignatureManager) signatureFactory
+				.createSignatureManager();
 		signatureAlgorithm.init(randomness, true);
 		BrkeCiphertext brkeCiphertext = new BrkeCiphertext(1, kukemPublicKey, verificationKey, 1,
 				queuedKuKemCiphertext);

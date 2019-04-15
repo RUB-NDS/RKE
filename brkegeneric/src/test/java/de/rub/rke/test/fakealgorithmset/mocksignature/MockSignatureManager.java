@@ -8,7 +8,7 @@ import java.util.Queue;
 import de.rub.rke.brke.BrkeCiphertext;
 import de.rub.rke.kukem.KuKemPublicKey;
 import de.rub.rke.queuedkukem.QueuedKuKemCiphertext;
-import de.rub.rke.signature.SignatureAlgorithm;
+import de.rub.rke.signature.SignatureManager;
 import de.rub.rke.signature.SignatureOutput;
 import de.rub.rke.signature.SignatureVerificationKey;
 import de.rub.rke.test.Encoder;
@@ -25,7 +25,7 @@ import de.rub.rke.variables.KeySeed;
  * @author Marco Smeets
  *
  */
-public class MockSignatureAlgorithm implements SignatureAlgorithm {
+public class MockSignatureManager implements SignatureManager {
 
 	/**
 	 * Saves signing keys and the verification key for the communication partner
@@ -33,7 +33,7 @@ public class MockSignatureAlgorithm implements SignatureAlgorithm {
 	Queue<MockSignatureSigningKey> signingKeys;
 	MockSignatureVerificationKey communicationPartnerVerificationKey;
 
-	public MockSignatureAlgorithm() {
+	public MockSignatureManager() {
 		signingKeys = new LinkedList<MockSignatureSigningKey>();
 	}
 
