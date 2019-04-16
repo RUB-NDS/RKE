@@ -23,6 +23,13 @@ public class BrkeCiphertext {
 	private SignatureOutput signature;
 
 	/**
+	 * We need a empty constructor to reconstruct the objects from JSON.
+	 */
+	@SuppressWarnings("unused")
+	private BrkeCiphertext() {
+	}
+
+	/**
 	 * Constructor
 	 * 
 	 * @param numberOfReceivedMessages

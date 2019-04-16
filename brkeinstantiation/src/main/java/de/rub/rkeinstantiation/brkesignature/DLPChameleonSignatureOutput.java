@@ -15,6 +15,13 @@ public class DLPChameleonSignatureOutput implements SignatureOutput {
 	private BigInteger sign0;
 	private BigInteger sign1;
 
+	/**
+	 * We need a empty constructor to reconstruct the objects from JSON.
+	 */
+	@SuppressWarnings("unused")
+	private DLPChameleonSignatureOutput() {
+	}
+
 	public DLPChameleonSignatureOutput(BigInteger sign0, BigInteger sign1) {
 		this.sign0 = sign0;
 		this.sign1 = sign1;

@@ -18,6 +18,13 @@ public class DLPChameleonVerificationKey implements SignatureVerificationKey {
 	private BigInteger g3;
 	private byte[] z0;
 
+	/**
+	 * We need a empty constructor to reconstruct the objects from JSON.
+	 */
+	@SuppressWarnings("unused")
+	private DLPChameleonVerificationKey() {
+	}
+
 	public DLPChameleonVerificationKey(BigInteger g1, BigInteger g2, BigInteger g3, byte[] z0) {
 		this.g1 = g1;
 		this.g2 = g2;

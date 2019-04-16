@@ -18,6 +18,13 @@ public class QueuedKuKemCiphertext {
 	private Queue<KuKemCiphertext> kuKemCiphertexts;
 
 	/**
+	 * We need a empty constructor to reconstruct the objects from JSON.
+	 */
+	@SuppressWarnings("unused")
+	private QueuedKuKemCiphertext() {
+	}
+
+	/**
 	 * Constructor
 	 * 
 	 * @param ciphertexts

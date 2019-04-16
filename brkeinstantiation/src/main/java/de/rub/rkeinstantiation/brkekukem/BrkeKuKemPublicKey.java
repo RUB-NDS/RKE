@@ -17,6 +17,13 @@ public class BrkeKuKemPublicKey implements KuKemPublicKey {
 	private byte[] identityInformation;
 	private int level;
 
+	/**
+	 * We need a empty constructor to reconstruct the objects from JSON.
+	 */
+	@SuppressWarnings("unused")
+	private BrkeKuKemPublicKey() {
+	}
+
 	public BrkeKuKemPublicKey(HibePublicParameter hibePublicParameter, byte[] identityInformation, int level) {
 		this.hibePublicParameter = hibePublicParameter;
 		this.identityInformation = Arrays.copyOf(identityInformation, identityInformation.length);
