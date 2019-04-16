@@ -9,3 +9,16 @@ We chose the following algorithms for our implementation:
 * Hash:
 * HIBE:
 * Signature:
+
+## Build Instructions
+### Prerequisites
+- Currently, the project is only buildable on Linux 64Bit.
+- Make sure to have **CMake** installed.
+- ${JAVA_HOME} environment variable is set to a base directory of a Java installation so that Maven can find the jni header files.
+### Building
+If everything is set up properly, the standard maven commands should work to compile and test the project.
+ 
+You can compile and install the project by calling
+`mvn install`
+and run the Unit tests by calling
+`mvn test`.
