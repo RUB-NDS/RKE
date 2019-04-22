@@ -305,7 +305,7 @@ public class CiphertextEncoder {
 		try {
 			json = ow.writeValueAsBytes(ciphertext);
 		} catch (JsonProcessingException e) {
-			e.printStackTrace();
+			return null;
 		}
 		byte[] base64encoded = Base64.getEncoder().encode(json);
 		return base64encoded;
@@ -337,7 +337,7 @@ public class CiphertextEncoder {
 		try {
 			ciphertext = ow.readValue(json, BrkeCiphertext.class);
 		} catch (IOException e) {
-			e.printStackTrace();
+			return null;
 		}
 		return ciphertext;
 	}
