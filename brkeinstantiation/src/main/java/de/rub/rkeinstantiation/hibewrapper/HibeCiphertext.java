@@ -11,12 +11,19 @@ import java.util.Arrays;
 public class HibeCiphertext {
 	private byte[] com;
 	private byte[] ciphertext;
-	private byte[] mactag;
+	private byte[] macTag;
 
-	public HibeCiphertext(byte[] com, byte[] ciphertext, byte[] mactag) {
+	/**
+	 * We need a empty constructor to reconstruct the objects from JSON.
+	 */
+	@SuppressWarnings("unused")
+	private HibeCiphertext() {
+	}
+
+	public HibeCiphertext(byte[] com, byte[] ciphertext, byte[] macTag) {
 		this.com = Arrays.copyOf(com, com.length);
 		this.ciphertext = Arrays.copyOf(ciphertext, ciphertext.length);
-		this.mactag = Arrays.copyOf(mactag, mactag.length);
+		this.macTag = Arrays.copyOf(macTag, macTag.length);
 	}
 
 	public byte[] getCom() {
@@ -28,6 +35,6 @@ public class HibeCiphertext {
 	}
 
 	public byte[] getMacTag() {
-		return mactag;
+		return macTag;
 	}
 }

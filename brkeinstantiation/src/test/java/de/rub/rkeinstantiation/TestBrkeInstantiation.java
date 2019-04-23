@@ -6,16 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.bouncycastle.asn1.teletrust.TeleTrusTNamedCurves;
-import org.bouncycastle.asn1.x9.X9ECParameters;
-import org.bouncycastle.crypto.digests.SHA256Digest;
-import org.bouncycastle.crypto.generators.KDF2BytesGenerator;
-import org.bouncycastle.crypto.params.ECDomainParameters;
 import org.junit.jupiter.api.Test;
 
 import de.rub.rke.brke.BrkeCiphertext;
@@ -46,6 +40,7 @@ import de.rub.rkeinstantiation.factories.DLPChameleonSignatureFactory;
 import de.rub.rkeinstantiation.factories.ECIESKemFactory;
 import de.rub.rkeinstantiation.factories.HKDFRandomOracleFactory;
 import de.rub.rkeinstantiation.hibewrapper.HibePublicParameter;
+import de.rub.rkeinstantiation.utility.CiphertextEncoder;
 import de.rub.rkeinstantiation.utility.SecureRandomBuilder;
 import de.rub.rkeinstantiation.variables.BrkeAssociatedData;
 import de.rub.rkeinstantiation.variables.BrkeSymmetricKey;
@@ -297,20 +292,25 @@ public class TestBrkeInstantiation {
 		 * Each user sends 20 messages, but it is randomized at which point the other
 		 * user receives the next 'set' of messages. This way we can simulate
 		 * asynchronous communication and see that the Brke construction achieves its
-		 * purpose.
+		 * purpose. To test the ciphertext encoding, the ciphertexts are converted to
+		 * Base64 and back, before the other user performs the receive algorithm.
 		 */
 		for (int i = 0; i < 20; i++) {
 			sendOutputA[i] = brkeUserA.send(randomness, associatedData);
 			if (rng.nextBoolean()) {
 				for (int j = lastReceivedMessageB + 1; j <= i; j++) {
-					receiveOutputB[j] = brkeUserB.receive(associatedData, sendOutputA[j].getCiphertext());
+					byte[] encodedCiphertext = CiphertextEncoder.ciphertextToBase64(sendOutputA[j].getCiphertext());
+					BrkeCiphertext ciphertext = CiphertextEncoder.base64ToCiphertext(encodedCiphertext);
+					receiveOutputB[j] = brkeUserB.receive(associatedData, ciphertext);
 				}
 				lastReceivedMessageB = i;
 			}
 			sendOutputB[i] = brkeUserB.send(randomness, associatedData);
 			if (rng.nextBoolean()) {
 				for (int j = lastReceivedMessageA + 1; j <= i; j++) {
-					receiveOutputA[j] = brkeUserA.receive(associatedData, sendOutputB[j].getCiphertext());
+					byte[] encodedCiphertext = CiphertextEncoder.ciphertextToBase64(sendOutputB[j].getCiphertext());
+					BrkeCiphertext ciphertext = CiphertextEncoder.base64ToCiphertext(encodedCiphertext);
+					receiveOutputA[j] = brkeUserA.receive(associatedData, ciphertext);
 				}
 				lastReceivedMessageA = i;
 			}

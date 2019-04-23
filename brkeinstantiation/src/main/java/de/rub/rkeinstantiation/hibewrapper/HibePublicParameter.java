@@ -10,19 +10,26 @@ import java.util.Arrays;
  */
 public class HibePublicParameter {
 
-	private byte[] encapsulationKey;
+	private byte[] encapsulationPublicParameter;
 	private byte[] encodedHibePublicParameter;
+	
+	/**
+	 * We need a empty constructor to reconstruct the objects from JSON.
+	 */
+	@SuppressWarnings("unused")
+	private HibePublicParameter() {
+	}
 
 	public HibePublicParameter(byte[] encodedHibePublicParameter, byte[] encapsulationPublicParameter) {
-		this.encapsulationKey = Arrays.copyOf(encapsulationPublicParameter, encapsulationPublicParameter.length);
+		this.encapsulationPublicParameter = Arrays.copyOf(encapsulationPublicParameter, encapsulationPublicParameter.length);
 		this.encodedHibePublicParameter = Arrays.copyOf(encodedHibePublicParameter, encodedHibePublicParameter.length);
 	}
 
-	public byte[] getEncodedPublicParameter() {
+	public byte[] getEncodedHibePublicParameter() {
 		return encodedHibePublicParameter;
 	}
 
 	public byte[] getEncapsulationPublicParameter() {
-		return encapsulationKey;
+		return encapsulationPublicParameter;
 	}
 }

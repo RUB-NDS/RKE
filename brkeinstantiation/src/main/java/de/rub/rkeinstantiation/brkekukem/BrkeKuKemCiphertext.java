@@ -13,6 +13,13 @@ public class BrkeKuKemCiphertext implements KuKemCiphertext {
 
 	private HibeCiphertext ciphertext;
 
+	/**
+	 * We need a empty constructor to reconstruct the objects from JSON.
+	 */
+	@SuppressWarnings("unused")
+	private BrkeKuKemCiphertext() {
+	}
+
 	public BrkeKuKemCiphertext(HibeCiphertext ciphertext) {
 		this.ciphertext = ciphertext;
 	}

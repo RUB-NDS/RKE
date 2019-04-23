@@ -239,7 +239,7 @@ public class Hibe {
 		 * Encrypt the random Element
 		 */
 		randomness.nextBytes(seed);
-		byte[] ciphertext = encrypt(publicParameter.getEncodedPublicParameter(), randomElement, encodedIdentities,
+		byte[] ciphertext = encrypt(publicParameter.getEncodedHibePublicParameter(), randomElement, encodedIdentities,
 				sizeOfCCAIdentityData, level + 1, seed);
 		/**
 		 * Compute the Mac Tag of the ciphertext[4].
