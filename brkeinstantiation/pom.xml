@@ -10,6 +10,7 @@
 	</parent>
 	<artifactId>brkeinstantiation</artifactId>
 	<packaging>jar</packaging>
+        <version>1.0</version>
 	<name>BRKE Instatiation</name>
 	<dependencies>
 		<dependency>
