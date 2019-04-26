@@ -282,7 +282,10 @@ public class BrkeEvaluation {
 		System.out.println("Size of ciphertexts:");
 		System.out.println("Base ciphertext size (without kuKem ciphertext): " + baseCiphertextSize);
 		System.out.println("Individual ciphertext parts have size:");
-		printCiphertextSizes(ciphertext[0]);
+		printBaseCiphertextSizes(ciphertext[0]);
+		/**
+		 * Check if KuKem ciphertext sizes are constant
+		 */
 		for (int i = 0; i < numberOfCiphertexts; i++) {
 			auxilaryKuKemCiphertextSize[i] = kukemCiphertextSize[i][1];
 			constantCiphertext[i] = true;
@@ -615,7 +618,10 @@ public class BrkeEvaluation {
 		System.out.println("Size of ciphertexts:");
 		System.out.println("Base ciphertext size (without kuKem ciphertext): " + baseCiphertextSize);
 		System.out.println("Individual ciphertext parts have size:");
-		printCiphertextSizes(ciphertext[0]);
+		printBaseCiphertextSizes(ciphertext[0]);
+		/**
+		 * Check if KuKem ciphertext sizes are constant
+		 */
 		for (int i = 0; i < numberOfCiphertexts; i++) {
 			auxilaryKuKemCiphertextSize[i] = kukemCiphertextSize[i][1];
 			constantCiphertext[i] = true;
@@ -967,7 +973,10 @@ public class BrkeEvaluation {
 		System.out.println("Size of ciphertexts:");
 		System.out.println("Base ciphertext size (without kuKem ciphertext): " + baseCiphertextSize);
 		System.out.println("Individual ciphertext parts have size:");
-		printCiphertextSizes(ciphertext[0]);
+		printBaseCiphertextSizes(ciphertext[0]);
+		/**
+		 * Check if KuKem ciphertext sizes are constant
+		 */
 		for (int i = 0; i < numberOfCiphertexts; i++) {
 			auxilaryKuKemCiphertextSize[i] = kukemCiphertextSize[i][1];
 			constantCiphertext[i] = true;
@@ -1347,7 +1356,10 @@ public class BrkeEvaluation {
 		System.out.println("Size of ciphertexts:");
 		System.out.println("Base ciphertext size (without kuKem ciphertext): " + baseCiphertextSize);
 		System.out.println("Individual ciphertext parts have size:");
-		printCiphertextSizes(ciphertext[0]);
+		printBaseCiphertextSizes(ciphertext[0]);
+		/**
+		 * Check if KuKem ciphertext sizes are constant
+		 */
 		for (int i = 0; i < numberOfCiphertexts; i++) {
 			auxilaryKuKemCiphertextSize[i] = kukemCiphertextSize[i][1];
 			constantCiphertext[i] = true;
@@ -1372,6 +1384,12 @@ public class BrkeEvaluation {
 		}
 	}
 
+	/**
+	 * Get the size of the KuKem ciphertext.
+	 * 
+	 * @param ciphertext
+	 * @return
+	 */
 	private static long getKuKemCiphertextSize(BrkeCiphertext ciphertext) {
 		QueuedKuKemCiphertext queuedKuKemCiphertext = ciphertext.getCiphertext();
 		if (queuedKuKemCiphertext.getKuKemCiphertexts() == null) {
@@ -1381,7 +1399,13 @@ public class BrkeEvaluation {
 		}
 	}
 
-	private static void printCiphertextSizes(BrkeCiphertext ciphertext) {
+	/**
+	 * Print sizes of the base Brke ciphertext (without kuKem ciphertexts) to the
+	 * console.
+	 * 
+	 * @param ciphertext
+	 */
+	private static void printBaseCiphertextSizes(BrkeCiphertext ciphertext) {
 		BrkeKuKemPublicKey kuKemPublicKey = (BrkeKuKemPublicKey) ciphertext.getPublicKey();
 		DLPChameleonVerificationKey verificationKey = (DLPChameleonVerificationKey) ciphertext.getVerificationKey();
 		QueuedKuKemCiphertext queuedKuKemCiphertext = ciphertext.getCiphertext();
@@ -1403,6 +1427,9 @@ public class BrkeEvaluation {
 		System.out.println();
 	}
 
+	/**
+	 * Detects the sizes of the HIBE and prints them to console.
+	 */
 	private static void detectHibeSizes() {
 		/**
 		 * Get the size of the elements of the elliptic curve used in the HIBE. Detect
