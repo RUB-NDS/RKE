@@ -40,7 +40,58 @@ import org.openjdk.jol.info.GraphLayout;
 public class BrkeEvaluation {
 	private static SecureRandom randomness;
 	private static int securityLevel = 128;
-	public static String curveidentifier;
+	private static String curveidentifier;
+	private final static int ITERATIONS = 50;
+	private final static int NANOSEC_PER_MS = 1000000;
+
+	/**
+	 * Communication Sequences
+	 */
+	private final static int LOCKSTEP = 0;
+	private final static int ASYNCH_WO_CROSS = 1;
+	private final static int ASYNCH_WITH_CROSS = 2;
+	private final static int WORSTCASE = 3;
+
+	/**
+	 * File names
+	 */
+	private final static String LOCKSTEP_FILE_STRING = "_LockStep_fulldata.csv";
+	private final static String ASYNCH_WO_CROSS_FILE_STRING = "_AsynchWoCross_fulldata.csv";
+	private final static String ASYNCH_WITH_CROSS_FILE_STRING = "_AsynchWithCross_fulldata.csv";
+	private final static String WORSTCASE_FILE_STRING = "_WorstCase_fulldata.csv";
+
+	/**
+	 * Lockstep communication variables
+	 */
+	private final static int LOCKSTEP_COMMUNICATIONSTEPS = 4;
+	private final static int LOCKSTEP_CIPHERTEXTS = 2;
+	private final static String LOCKSTEP_FILE_BEGINNING = "Iteration;Step 0;Step 1;Step 2;Step 3;kuKemCiphertext size 0;kuKemCiphertext size 1;UserstateA size;UserstateB size";
+
+	/**
+	 * Asynchronous communication with/without crossing messages variables
+	 */
+	private final static int ASYNCH_COMMUNICATIONSTEPS = 10;
+	private final static int ASYNCH_CIPHERTEXTS = 5;
+	private final static String ASYNCH_FILE_BEGINNING = "Iteration;Step 0;Step 1;Step 2;Step 3;Step 4;Step 5;Step 6;Step 7;Step 8;Step 9;kuKemCiphertext size 0;kuKemCiphertext size 1;kuKemCiphertext size 2;kuKemCiphertext size 3;kuKemCiphertext size 4;Userstate diff 0;Userstate diff 1;Userstate diff 2;Userstate diff 3;Userstate diff 4;Userstate diff 5;Userstate diff 6;Userstate diff 7;Userstate diff 8;Userstate diff 9";
+	private final static int ASYNCH_BRKE_OUTPUT_A = 3;
+	private final static int ASYNCH_BRKE_OUTPUT_B = 2;
+
+	/**
+	 * 'Worst Case' communication variables
+	 */
+	private final static int WORSTCASE_COMMUNICATIONSTEPS = 16;
+	private final static int WORSTCASE_CIPHERTEXTS = 8;
+	private final static String WORSTCASE_FILE_BEGINNING = "Iteration;Step 0;Step 1;Step 2;Step 3;Step 4;Step 5;Step 6;Step 7;Step 8;Step 9;Step 10;Step 11;Step 12;Step 13;Step 14;Step 15;kuKemCiphertext size 0;kuKemCiphertext size 1;kuKemCiphertext size 2;kuKemCiphertext size 3;kuKemCiphertext size 4;kuKemCiphertext size 5;kuKemCiphertext size 6;kuKemCiphertext size 7;Userstate diff 0;Userstate diff 1;Userstate diff 2;Userstate diff 3;Userstate diff 4;Userstate diff 5;Userstate diff 6;Userstate diff 7;Userstate diff 8;Userstate diff 9";
+	private final static int WORSTCASE_BRKE_OUTPUT_A = 6;
+	private final static int WORSTCASE_BRKE_OUTPUT_B = 2;
+
+	private final static int BNP256_B12P381_FIELD_ELEMENT_SIZE = 32;
+	private final static int BNP256_G1_ELEMENT_SIZE = 33;
+	private final static int B12P381_G1_ELEMENT_SIZE = 49;
+	private final static int B12P455_FIELD_ELEMENT_SIZE = 38;
+	private final static int B12P455_G1_ELEMENT_SIZE = 58;
+	private final static int BNP382_FIELD_ELEMENT_SIZE = 48;
+	private final static int BNP382_G1_ELEMENT_SIZE = 49;
 
 	public static void main(String[] args) {
 		System.out.println("Evaluation of AlgortihmSet1 of the BRKE instantiation");
@@ -50,11 +101,10 @@ public class BrkeEvaluation {
 		System.out.println();
 		System.out.println("Testing different communication sequences:");
 
-		int iterations = 50;
-		testLockStepCommunication(iterations);
-		testAsynchWithoutCrossing(iterations);
-		testAsynchWithCrossing(iterations);
-		testWorstCase(iterations);
+		testCommunicationSequence(LOCKSTEP);
+		testCommunicationSequence(ASYNCH_WO_CROSS);
+		testCommunicationSequence(ASYNCH_WITH_CROSS);
+		testCommunicationSequence(WORSTCASE);
 	}
 
 	/**
@@ -62,19 +112,8 @@ public class BrkeEvaluation {
 	 * 
 	 * @param iterations - number of test iterations
 	 */
-	static void testLockStepCommunication(int iterations) {
-		System.out.println();
-		System.out.println("********************************");
-		System.out.println("Test Case 1: Lockstep communication");
-		System.out.println("********************************");
-		System.out.println("Communication sequence:");
-		System.out.println("Sender  -> Receiver ; generated Ciphertext");
-		System.out.println("A(0) -> B(1); Ciphertext 0");
-		System.out.println("B(2) -> A(3); Ciphertext 1");
-		System.out.println("Jump to 0.");
-		System.out.println("Repeat: " + iterations + " times.");
-		System.out.println("Every message is directly received.");
-
+	static void testCommunicationSequence(int communicationSequence) {
+		printCommunicationSequence(communicationSequence);
 		/**
 		 * Initialize BrkeAlgorithmSet for security level
 		 */
@@ -109,21 +148,31 @@ public class BrkeEvaluation {
 		/**
 		 * Reset File
 		 */
-		try {
-			BufferedWriter writer = new BufferedWriter(new FileWriter(curveidentifier + "_LockStep_fulldata.csv"));
-			String content = "Iteration;Step 0;Step 1;Step 2;Step 3;kuKemCiphertext size 0;kuKemCiphertext size 1;UserstateA size;UserstateB size";
-			writer.append(content);
-			writer.newLine();
-			writer.close();
+		initializeCSVFile(communicationSequence);
 
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		/**
 		 * Naming is corresponding to communication sequence numbers
 		 */
-		int communicationsteps = 4;
-		int numberOfCiphertexts = 2;
+		int communicationsteps = 0;
+		int ciphertexts = 0;
+		switch (communicationSequence) {
+		case LOCKSTEP:
+			communicationsteps = LOCKSTEP_COMMUNICATIONSTEPS;
+			ciphertexts = LOCKSTEP_CIPHERTEXTS;
+			break;
+		case ASYNCH_WO_CROSS:
+			communicationsteps = ASYNCH_COMMUNICATIONSTEPS;
+			ciphertexts = ASYNCH_CIPHERTEXTS;
+			break;
+		case ASYNCH_WITH_CROSS:
+			communicationsteps = ASYNCH_COMMUNICATIONSTEPS;
+			ciphertexts = ASYNCH_CIPHERTEXTS;
+			break;
+		case WORSTCASE:
+			communicationsteps = WORSTCASE_COMMUNICATIONSTEPS;
+			ciphertexts = WORSTCASE_CIPHERTEXTS;
+			break;
+		}
 		long startTime[] = new long[communicationsteps];
 		long endTime[] = new long[communicationsteps];
 		long sumTime[] = new long[communicationsteps];
@@ -137,13 +186,36 @@ public class BrkeEvaluation {
 			sumSize[i] = 0;
 		}
 
+		BrkeCiphertext ciphertext[] = new BrkeCiphertext[ciphertexts];
+		long kukemCiphertextSize[][] = new long[ciphertexts][ITERATIONS + 1];
+
+		switch (communicationSequence) {
+		case LOCKSTEP:
+			performLockstep(brkeUserA, brkeUserB, ad, startTime, endTime, sumTime, startSize, endSize, sumSize,
+					ciphertext, kukemCiphertextSize);
+			break;
+		case ASYNCH_WO_CROSS:
+			performAsynchWOCross(brkeUserA, brkeUserB, ad, startTime, endTime, sumTime, startSize, endSize, sumSize,
+					ciphertext, kukemCiphertextSize);
+			break;
+		case ASYNCH_WITH_CROSS:
+			performAsynchWithCross(brkeUserA, brkeUserB, ad, startTime, endTime, sumTime, startSize, endSize, sumSize,
+					ciphertext, kukemCiphertextSize);
+			break;
+		case WORSTCASE:
+			performWorstCase(brkeUserA, brkeUserB, ad, startTime, endTime, sumTime, startSize, endSize, sumSize,
+					ciphertext, kukemCiphertextSize);
+			break;
+		}
+	}
+
+	private static void performLockstep(BrkeConstruction brkeUserA, BrkeConstruction brkeUserB, BrkeAssociatedData ad,
+			long[] startTime, long[] endTime, long[] sumTime, long[] startSize, long[] endSize, long[] sumSize,
+			BrkeCiphertext ciphertext[], long kukemCiphertextSize[][]) {
 		BrkeSendOutput sendOutputA;
 		BrkeSendOutput sendOutputB;
 		BrkeSymmetricKey sessionKeyA;
 		BrkeSymmetricKey sessionKeyB;
-
-		BrkeCiphertext ciphertext[] = new BrkeCiphertext[numberOfCiphertexts];
-		long kukemCiphertextSize[][] = new long[numberOfCiphertexts][iterations + 1];
 
 		System.out.println("Userstate A size before communication: " + GraphLayout.parseInstance(brkeUserA).totalSize()
 				+ " byte.");
@@ -155,7 +227,7 @@ public class BrkeEvaluation {
 		 * We save the data of the first iteration in the files, but do not consider
 		 * them when computing the average.
 		 */
-		for (int i = 0; i < iterations + 1; i++) {
+		for (int i = 0; i < ITERATIONS + 1; i++) {
 			/**
 			 * Measure time for the communication sequence. Check if session keys are
 			 * matching to ensure correct sequence.
@@ -218,8 +290,8 @@ public class BrkeEvaluation {
 				/**
 				 * Sum of the measurements
 				 */
-				for (int j = 0; j < communicationsteps; j++) {
-					sumTime[j] = sumTime[j] + ((endTime[j] - startTime[j]) / 1000000);
+				for (int j = 0; j < LOCKSTEP_COMMUNICATIONSTEPS; j++) {
+					sumTime[j] = sumTime[j] + ((endTime[j] - startTime[j]) / NANOSEC_PER_MS);
 					sumSize[j] = sumSize[j] + (endSize[j] - startSize[j]);
 				}
 			}
@@ -231,13 +303,13 @@ public class BrkeEvaluation {
 				BufferedWriter writer = new BufferedWriter(
 						new FileWriter(curveidentifier + "_LockStep_fulldata.csv", true));
 				String output = i + ";";
-				for (int j = 0; j < communicationsteps; j++) {
-					output += ((endTime[j] - startTime[j]) / 1000000) + ";";
+				for (int j = 0; j < LOCKSTEP_COMMUNICATIONSTEPS; j++) {
+					output += ((endTime[j] - startTime[j]) / NANOSEC_PER_MS) + ";";
 				}
-				for (int j = 0; j < numberOfCiphertexts; j++) {
+				for (int j = 0; j < LOCKSTEP_CIPHERTEXTS; j++) {
 					output += kukemCiphertextSize[j][i] + ";";
 				}
-				for (int j = 0; j < communicationsteps; j++) {
+				for (int j = 0; j < LOCKSTEP_COMMUNICATIONSTEPS; j++) {
 					output += (endSize[j] - startSize[j]) + ";";
 				}
 				writer.append(output);
@@ -246,166 +318,24 @@ public class BrkeEvaluation {
 			} catch (IOException e) {
 			}
 		}
-		/**
-		 * Print results to console.
-		 */
-		System.out.println();
-		System.out.println("********************************");
-		System.out.println("Average duration:");
-		System.out
-				.println("Communication step 0 - A sends    - takes: " + (sumTime[0] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 1 - B receives - takes: " + (sumTime[1] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 2 - B sends    - takes: " + (sumTime[2] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 3 - A receives - takes: " + (sumTime[3] / iterations) + " ms on average.");
-
-		System.out.println("********************************");
-		System.out.println("Average size change:");
-		System.out.println("Communication step 0 - A sends    - changes the state by: " + (sumSize[0] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 1 - B receives - changes the state by: " + (sumSize[1] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 2 - B sends    - changes the state by: " + (sumSize[2] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 3 - A receives - changes the state by: " + (sumSize[3] / iterations)
-				+ " byte on average.");
-
-		long auxilaryKuKemCiphertextSize[] = new long[numberOfCiphertexts];
-		boolean constantCiphertext[] = new boolean[numberOfCiphertexts];
-
-		long baseCiphertextSize = GraphLayout.parseInstance(ciphertext[0]).totalSize()
-				- kukemCiphertextSize[0][iterations];
-		System.out.println();
-		System.out.println("********************************");
-		System.out.println("Size of ciphertexts:");
-		System.out.println("Base ciphertext size (without kuKem ciphertext): " + baseCiphertextSize);
-		System.out.println("Individual ciphertext parts have size:");
-		printBaseCiphertextSizes(ciphertext[0]);
-		/**
-		 * Check if KuKem ciphertext sizes are constant
-		 */
-		for (int i = 0; i < numberOfCiphertexts; i++) {
-			auxilaryKuKemCiphertextSize[i] = kukemCiphertextSize[i][1];
-			constantCiphertext[i] = true;
-		}
-		for (int i = 2; i < iterations; i++) {
-			for (int j = 0; j < numberOfCiphertexts; j++) {
-				if (auxilaryKuKemCiphertextSize[j] != kukemCiphertextSize[j][i]) {
-					constantCiphertext[j] = false;
-				}
-			}
-		}
-		for (int i = 0; i < numberOfCiphertexts; i++) {
-			if (constantCiphertext[i] == true) {
-				System.out.println("KuKem ciphertext size of ciphertext " + i + " is constant with "
-						+ kukemCiphertextSize[i][1] + " byte.");
-			} else {
-				System.out.println("KuKem ciphertext size of ciphertext " + i + " is not constant. Check full data.");
-			}
-		}
-		for (int i = 0; i < 2; i++) {
-			System.out.println();
-		}
+		printResults(LOCKSTEP, sumTime, sumSize, ciphertext, kukemCiphertextSize);
 	}
 
-	/**
-	 * Test asynchronous communication without crossing messages.
-	 * 
-	 * @param iterations - number of test iterations
-	 */
-	private static void testAsynchWithoutCrossing(int iterations) {
-		System.out.println();
-		System.out.println("********************************");
-		System.out.println("Test Case 2: Asynchronous communication without crossing messages");
-		System.out.println("********************************");
-		System.out.println("Communication sequence:");
-		System.out.println("Sender  -> Receiver ; generated Ciphertext");
-		System.out.println("A(0) -> B(1); Ciphertext 0");
-		System.out.println("A(2) -> B(3); Ciphertext 1");
-		System.out.println("A(4) -> B(5); Ciphertext 2");
-		System.out.println("B(6) -> A(7); Ciphertext 3");
-		System.out.println("B(8) -> A(9); Ciphertext 4");
-		System.out.println("Jump to 0.");
-		System.out.println("Repeat: " + iterations + " times.");
-		System.out.println("Every message is directly received.");
+	private static void performAsynchWOCross(BrkeConstruction brkeUserA, BrkeConstruction brkeUserB,
+			BrkeAssociatedData ad, long[] startTime, long[] endTime, long[] sumTime, long[] startSize, long[] endSize,
+			long[] sumSize, BrkeCiphertext ciphertext[], long kukemCiphertextSize[][]) {
+		BrkeSendOutput sendOutputA[] = new BrkeSendOutput[ASYNCH_BRKE_OUTPUT_A];
+		BrkeSendOutput sendOutputB[] = new BrkeSendOutput[ASYNCH_BRKE_OUTPUT_B];
 
-		/**
-		 * Initialize BrkeAlgorithmSet for security level
-		 */
-		BrkeAlgorithmSet algorithmSet;
-		ECIESKemFactory kemFactory = new ECIESKemFactory();
-		BrkeKuKemAssociatedDataFactory associatedDataFactory = new BrkeKuKemAssociatedDataFactory();
-		BrkeKuKemFactory kuKemFactory = new BrkeKuKemFactory();
-		BrkeTranscriptFactory transcriptFactory = new BrkeTranscriptFactory();
-		HKDFRandomOracleFactory randomOracleFactory = new HKDFRandomOracleFactory();
-		if (securityLevel == 100) {
-			DLPChameleon100BitSignatureFactory signatureFactory = new DLPChameleon100BitSignatureFactory();
-			algorithmSet = new AlgorithmSet100Bit(kuKemFactory, kemFactory, randomOracleFactory, associatedDataFactory,
-					signatureFactory, transcriptFactory);
-		} else {
-			DLPChameleonSignatureFactory signatureFactory = new DLPChameleonSignatureFactory();
-			algorithmSet = new AlgorithmSet1(kuKemFactory, kemFactory, randomOracleFactory, associatedDataFactory,
-					signatureFactory, transcriptFactory);
-		}
-		/**
-		 * Initialize two Brke users
-		 */
-		byte[] seed = new byte[32];
-		randomness.nextBytes(seed);
-		SecureRandom initialRandomnessA = SecureRandomBuilder.createSeedableRandomness();
-		SecureRandom initialRandomnessB = SecureRandomBuilder.createSeedableRandomness();
-		initialRandomnessA.setSeed(seed);
-		initialRandomnessB.setSeed(seed);
-		BrkeAssociatedData ad = new BrkeAssociatedData(seed);
-		BrkeConstruction brkeUserA = new BrkeConstruction(initialRandomnessA, algorithmSet, true);
-		BrkeConstruction brkeUserB = new BrkeConstruction(initialRandomnessB, algorithmSet, false);
-		/**
-		 * Reset file
-		 */
-		try {
-			BufferedWriter writer = new BufferedWriter(new FileWriter(curveidentifier + "_AsynchWoCross_fulldata.csv"));
-			String content = "Iteration;Step 0;Step 1;Step 2;Step 3;Step 4;Step 5;Step 6;Step 7;Step 8;Step 9;kuKemCiphertext size 0;kuKemCiphertext size 1;kuKemCiphertext size 2;kuKemCiphertext size 3;kuKemCiphertext size 4;Userstate diff 0;Userstate diff 1;Userstate diff 2;Userstate diff 3;Userstate diff 4;Userstate diff 5;Userstate diff 6;Userstate diff 7;Userstate diff 8;Userstate diff 9";
-			writer.append(content);
-			writer.newLine();
-			writer.close();
-
-		} catch (IOException e) {
-		}
-		/**
-		 * Naming is corresponding to communication sequence numbers
-		 */
-		int communicationsteps = 10;
-		int numberOfCiphertexts = 5;
-		long startTime[] = new long[communicationsteps];
-		long endTime[] = new long[communicationsteps];
-		long sumTime[] = new long[communicationsteps];
-		for (int i = 0; i < communicationsteps; i++) {
-			sumTime[i] = 0;
-		}
-		long startSize[] = new long[communicationsteps];
-		long endSize[] = new long[communicationsteps];
-		long sumSize[] = new long[communicationsteps];
-		for (int i = 0; i < communicationsteps; i++) {
-			sumSize[i] = 0;
-		}
-
-		BrkeSendOutput sendOutputA[] = new BrkeSendOutput[3];
-		BrkeSendOutput sendOutputB[] = new BrkeSendOutput[2];
-
-		BrkeSymmetricKey sessionKeyA[] = new BrkeSymmetricKey[2];
-		BrkeSymmetricKey sessionKeyB[] = new BrkeSymmetricKey[3];
-
-		BrkeCiphertext ciphertext[] = new BrkeCiphertext[numberOfCiphertexts];
-		long kukemCiphertextSize[][] = new long[numberOfCiphertexts][iterations + 1];
+		BrkeSymmetricKey sessionKeyA[] = new BrkeSymmetricKey[ASYNCH_BRKE_OUTPUT_B];
+		BrkeSymmetricKey sessionKeyB[] = new BrkeSymmetricKey[ASYNCH_BRKE_OUTPUT_A];
 
 		System.out.println("Userstate A size before communication: " + GraphLayout.parseInstance(brkeUserA).totalSize()
 				+ " byte.");
 		System.out.println("Userstate B size before communication: " + GraphLayout.parseInstance(brkeUserB).totalSize()
 				+ " byte.");
 
-		for (int i = 0; i < iterations + 1; i++) {
+		for (int i = 0; i < ITERATIONS + 1; i++) {
 			/**
 			 * Measure time for the communication sequence. Check if session keys are
 			 * matching to ensure correct sequence.
@@ -516,7 +446,7 @@ public class BrkeEvaluation {
 			/**
 			 * Get KuKem ciphertext size
 			 */
-			for (int j = 0; j < numberOfCiphertexts; j++) {
+			for (int j = 0; j < ASYNCH_CIPHERTEXTS; j++) {
 				kukemCiphertextSize[j][i] = getKuKemCiphertextSize(ciphertext[j]);
 			}
 
@@ -527,8 +457,8 @@ public class BrkeEvaluation {
 				/**
 				 * Sum of the measurements
 				 */
-				for (int j = 0; j < communicationsteps; j++) {
-					sumTime[j] = sumTime[j] + ((endTime[j] - startTime[j]) / 1000000);
+				for (int j = 0; j < ASYNCH_COMMUNICATIONSTEPS; j++) {
+					sumTime[j] = sumTime[j] + ((endTime[j] - startTime[j]) / NANOSEC_PER_MS);
 					sumSize[j] = sumSize[j] + (endSize[j] - startSize[j]);
 				}
 			}
@@ -540,13 +470,13 @@ public class BrkeEvaluation {
 				BufferedWriter writer = new BufferedWriter(
 						new FileWriter(curveidentifier + "_AsynchWoCross_fulldata.csv", true));
 				String output = i + ";";
-				for (int j = 0; j < communicationsteps; j++) {
-					output += ((endTime[j] - startTime[j]) / 1000000) + ";";
+				for (int j = 0; j < ASYNCH_COMMUNICATIONSTEPS; j++) {
+					output += ((endTime[j] - startTime[j]) / NANOSEC_PER_MS) + ";";
 				}
-				for (int j = 0; j < numberOfCiphertexts; j++) {
+				for (int j = 0; j < ASYNCH_CIPHERTEXTS; j++) {
 					output += kukemCiphertextSize[j][i] + ";";
 				}
-				for (int j = 0; j < communicationsteps; j++) {
+				for (int j = 0; j < ASYNCH_COMMUNICATIONSTEPS; j++) {
 					output += (endSize[j] - startSize[j]) + ";";
 				}
 				writer.append(output);
@@ -555,199 +485,24 @@ public class BrkeEvaluation {
 			} catch (IOException e) {
 			}
 		}
-		/**
-		 * Print results to console.
-		 */
-		/**
-		 * Print timings
-		 */
-		System.out.println();
-		System.out.println("********************************");
-		System.out.println("Average duration:");
-		System.out
-				.println("Communication step 0 - A sends    - takes: " + (sumTime[0] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 1 - B receives - takes: " + (sumTime[1] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 2 - A sends    - takes: " + (sumTime[2] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 3 - B receives - takes: " + (sumTime[3] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 4 - A sends    - takes: " + (sumTime[4] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 5 - B receives - takes: " + (sumTime[5] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 6 - B sends    - takes: " + (sumTime[6] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 7 - A receives - takes: " + (sumTime[7] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 8 - B sends    - takes: " + (sumTime[8] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 9 - A receives - takes: " + (sumTime[9] / iterations) + " ms on average.");
-
-		System.out.println("********************************");
-		System.out.println("Average size change:");
-		System.out.println("Communication step 0 - A sends    - changes the state by: " + (sumSize[0] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 1 - B receives - changes the state by: " + (sumSize[1] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 2 - A sends    - changes the state by: " + (sumSize[2] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 3 - B receives - changes the state by: " + (sumSize[3] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 4 - A sends    - changes the state by: " + (sumSize[4] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 5 - B receives - changes the state by: " + (sumSize[5] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 6 - B sends    - changes the state by: " + (sumSize[6] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 7 - A receives - changes the state by: " + (sumSize[7] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 8 - B sends    - changes the state by: " + (sumSize[8] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 9 - A receives - changes the state by: " + (sumSize[9] / iterations)
-				+ " byte on average.");
-
-		long auxilaryKuKemCiphertextSize[] = new long[numberOfCiphertexts];
-		boolean constantCiphertext[] = new boolean[numberOfCiphertexts];
-
-		long baseCiphertextSize = GraphLayout.parseInstance(ciphertext[0]).totalSize()
-				- kukemCiphertextSize[0][iterations];
-		System.out.println();
-		System.out.println("********************************");
-		System.out.println("Size of ciphertexts:");
-		System.out.println("Base ciphertext size (without kuKem ciphertext): " + baseCiphertextSize);
-		System.out.println("Individual ciphertext parts have size:");
-		printBaseCiphertextSizes(ciphertext[0]);
-		/**
-		 * Check if KuKem ciphertext sizes are constant
-		 */
-		for (int i = 0; i < numberOfCiphertexts; i++) {
-			auxilaryKuKemCiphertextSize[i] = kukemCiphertextSize[i][1];
-			constantCiphertext[i] = true;
-		}
-		for (int i = 2; i < iterations; i++) {
-			for (int j = 0; j < numberOfCiphertexts; j++) {
-				if (auxilaryKuKemCiphertextSize[j] != kukemCiphertextSize[j][i]) {
-					constantCiphertext[j] = false;
-				}
-			}
-		}
-		for (int i = 0; i < numberOfCiphertexts; i++) {
-			if (constantCiphertext[i] == true) {
-				System.out.println("KuKem ciphertext size of ciphertext " + i + " is constant with "
-						+ kukemCiphertextSize[i][1] + " byte.");
-			} else {
-				System.out.println("KuKem ciphertext size of ciphertext " + i + " is not constant. Check full data.");
-			}
-		}
-		for (int i = 0; i < 2; i++) {
-			System.out.println();
-		}
+		printResults(ASYNCH_WO_CROSS, sumTime, sumSize, ciphertext, kukemCiphertextSize);
 	}
 
-	/**
-	 * Test asynchronous communication with crossing messages.
-	 * 
-	 * @param iterations - number of test iterations
-	 */
-	private static void testAsynchWithCrossing(int iterations) {
-		System.out.println();
-		System.out.println("********************************");
-		System.out.println("Test Case 3: Asynchronous communication with crossing messages");
-		System.out.println("********************************");
-		System.out.println("Communication sequence:");
-		System.out.println("Sender  -> Receiver ; generated Ciphertext");
-		System.out.println("A(0)_A0 ->        ; Ciphertext 0");
-		System.out.println("A(1)_A1 ->        ; Ciphertext 1");
-		System.out.println("B(2)_B0 ->        ; Ciphertext 2");
-		System.out.println("B(3)_B1 ->        ; Ciphertext 3");
-		System.out.println("	    -> A(4)_B0;");
-		System.out.println("A(5)_A2 ->        ; Ciphertext 4");
-		System.out.println("	    -> B(6)_A0;");
-		System.out.println("	    -> B(7)_A1;");
-		System.out.println("	    -> B(8)_A2;");
-		System.out.println("	    -> A(9)_B1;");
-		System.out.println("Jump to 0.");
-		System.out.println("Repeat: " + iterations + " times.");
-		System.out.println("Messages cross while communicating.");
+	private static void performAsynchWithCross(BrkeConstruction brkeUserA, BrkeConstruction brkeUserB,
+			BrkeAssociatedData ad, long[] startTime, long[] endTime, long[] sumTime, long[] startSize, long[] endSize,
+			long[] sumSize, BrkeCiphertext ciphertext[], long kukemCiphertextSize[][]) {
+		BrkeSendOutput sendOutputA[] = new BrkeSendOutput[ASYNCH_BRKE_OUTPUT_A];
+		BrkeSendOutput sendOutputB[] = new BrkeSendOutput[ASYNCH_BRKE_OUTPUT_A];
 
-		/**
-		 * Initialize BrkeAlgorithmSet for security level
-		 */
-		BrkeAlgorithmSet algorithmSet;
-		ECIESKemFactory kemFactory = new ECIESKemFactory();
-		BrkeKuKemAssociatedDataFactory associatedDataFactory = new BrkeKuKemAssociatedDataFactory();
-		BrkeKuKemFactory kuKemFactory = new BrkeKuKemFactory();
-		BrkeTranscriptFactory transcriptFactory = new BrkeTranscriptFactory();
-		HKDFRandomOracleFactory randomOracleFactory = new HKDFRandomOracleFactory();
-		if (securityLevel == 100) {
-			DLPChameleon100BitSignatureFactory signatureFactory = new DLPChameleon100BitSignatureFactory();
-			algorithmSet = new AlgorithmSet100Bit(kuKemFactory, kemFactory, randomOracleFactory, associatedDataFactory,
-					signatureFactory, transcriptFactory);
-		} else {
-			DLPChameleonSignatureFactory signatureFactory = new DLPChameleonSignatureFactory();
-			algorithmSet = new AlgorithmSet1(kuKemFactory, kemFactory, randomOracleFactory, associatedDataFactory,
-					signatureFactory, transcriptFactory);
-		}
-		/**
-		 * Initialize two Brke users
-		 */
-		byte[] seed = new byte[32];
-		randomness.nextBytes(seed);
-		SecureRandom initialRandomnessA = SecureRandomBuilder.createSeedableRandomness();
-		SecureRandom initialRandomnessB = SecureRandomBuilder.createSeedableRandomness();
-		initialRandomnessA.setSeed(seed);
-		initialRandomnessB.setSeed(seed);
-		BrkeAssociatedData ad = new BrkeAssociatedData(seed);
-		BrkeConstruction brkeUserA = new BrkeConstruction(initialRandomnessA, algorithmSet, true);
-		BrkeConstruction brkeUserB = new BrkeConstruction(initialRandomnessB, algorithmSet, false);
-		/**
-		 * Reset file
-		 */
-		try {
-			BufferedWriter writer = new BufferedWriter(
-					new FileWriter(curveidentifier + "_AsynchWithCross_fulldata.csv"));
-			String content = "Iteration;Step 0;Step 1;Step 2;Step 3;Step 4;Step 5;Step 6;Step 7;Step 8;Step 9;kuKemCiphertext size 0;kuKemCiphertext size 1;kuKemCiphertext size 2;kuKemCiphertext size 3;kuKemCiphertext size 4;Userstate diff 0;Userstate diff 1;Userstate diff 2;Userstate diff 3;Userstate diff 4;Userstate diff 5;Userstate diff 6;Userstate diff 7;Userstate diff 8;Userstate diff 9";
-			writer.append(content);
-			writer.newLine();
-			writer.close();
-
-		} catch (IOException e) {
-		}
-		/**
-		 * Naming is corresponding to communication sequence numbers
-		 */
-		int communicationsteps = 10;
-		int numberOfCiphertexts = 5;
-		long startTime[] = new long[communicationsteps];
-		long endTime[] = new long[communicationsteps];
-		long sumTime[] = new long[communicationsteps];
-		for (int i = 0; i < communicationsteps; i++) {
-			sumTime[i] = 0;
-		}
-		long startSize[] = new long[communicationsteps];
-		long endSize[] = new long[communicationsteps];
-		long sumSize[] = new long[communicationsteps];
-		for (int i = 0; i < communicationsteps; i++) {
-			sumSize[i] = 0;
-		}
-
-		BrkeSendOutput sendOutputA[] = new BrkeSendOutput[3];
-		BrkeSendOutput sendOutputB[] = new BrkeSendOutput[2];
-
-		BrkeSymmetricKey sessionKeyA[] = new BrkeSymmetricKey[2];
-		BrkeSymmetricKey sessionKeyB[] = new BrkeSymmetricKey[3];
-
-		BrkeCiphertext ciphertext[] = new BrkeCiphertext[numberOfCiphertexts];
-		long kukemCiphertextSize[][] = new long[numberOfCiphertexts][iterations + 1];
+		BrkeSymmetricKey sessionKeyA[] = new BrkeSymmetricKey[ASYNCH_BRKE_OUTPUT_A];
+		BrkeSymmetricKey sessionKeyB[] = new BrkeSymmetricKey[ASYNCH_BRKE_OUTPUT_A];
 
 		System.out.println("Userstate A size before communication: " + GraphLayout.parseInstance(brkeUserA).totalSize()
 				+ " byte.");
 		System.out.println("Userstate B size before communication: " + GraphLayout.parseInstance(brkeUserB).totalSize()
 				+ " byte.");
 
-		for (int i = 0; i < iterations + 1; i++) {
+		for (int i = 0; i < ITERATIONS + 1; i++) {
 			/**
 			 * Measure time for the communication sequence. Check if session keys are
 			 * matching to ensure correct sequence.
@@ -874,7 +629,7 @@ public class BrkeEvaluation {
 			/**
 			 * Get KuKem ciphertext size
 			 */
-			for (int j = 0; j < numberOfCiphertexts; j++) {
+			for (int j = 0; j < ASYNCH_CIPHERTEXTS; j++) {
 				kukemCiphertextSize[j][i] = getKuKemCiphertextSize(ciphertext[j]);
 			}
 
@@ -882,8 +637,8 @@ public class BrkeEvaluation {
 			 * Sum of the measurements
 			 */
 			if (i != 0) {
-				for (int j = 0; j < communicationsteps; j++) {
-					sumTime[j] = sumTime[j] + ((endTime[j] - startTime[j]) / 1000000);
+				for (int j = 0; j < ASYNCH_COMMUNICATIONSTEPS; j++) {
+					sumTime[j] = sumTime[j] + ((endTime[j] - startTime[j]) / NANOSEC_PER_MS);
 					sumSize[j] = sumSize[j] + (endSize[j] - startSize[j]);
 				}
 			}
@@ -895,13 +650,13 @@ public class BrkeEvaluation {
 				BufferedWriter writer = new BufferedWriter(
 						new FileWriter(curveidentifier + "_AsynchWithCross_fulldata.csv", true));
 				String output = i + ";";
-				for (int j = 0; j < communicationsteps; j++) {
-					output += ((endTime[j] - startTime[j]) / 1000000) + ";";
+				for (int j = 0; j < ASYNCH_COMMUNICATIONSTEPS; j++) {
+					output += ((endTime[j] - startTime[j]) / NANOSEC_PER_MS) + ";";
 				}
-				for (int j = 0; j < numberOfCiphertexts; j++) {
+				for (int j = 0; j < ASYNCH_CIPHERTEXTS; j++) {
 					output += kukemCiphertextSize[j][i] + ";";
 				}
-				for (int j = 0; j < communicationsteps; j++) {
+				for (int j = 0; j < ASYNCH_COMMUNICATIONSTEPS; j++) {
 					output += (endSize[j] - startSize[j]) + ";";
 				}
 				writer.append(output);
@@ -910,202 +665,24 @@ public class BrkeEvaluation {
 			} catch (IOException e) {
 			}
 		}
-		/**
-		 * Print results to console.
-		 */
-		/**
-		 * Print timings
-		 */
-		System.out.println();
-		System.out.println("********************************");
-		System.out.println("Average duration:");
-		System.out
-				.println("Communication step 0 - A sends    - takes: " + (sumTime[0] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 1 - A sends    - takes: " + (sumTime[1] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 2 - B sends    - takes: " + (sumTime[2] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 3 - B sends    - takes: " + (sumTime[3] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 4 - A receives - takes: " + (sumTime[4] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 5 - A sends    - takes: " + (sumTime[5] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 6 - B receives - takes: " + (sumTime[6] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 7 - B receives - takes: " + (sumTime[7] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 8 - B receives - takes: " + (sumTime[8] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 9 - A receives - takes: " + (sumTime[9] / iterations) + " ms on average.");
-
-		System.out.println("********************************");
-		System.out.println("Average size change:");
-		System.out.println("Communication step 0 - A sends    - changes the state by: " + (sumSize[0] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 1 - A sends    - changes the state by: " + (sumSize[1] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 2 - B sends    - changes the state by: " + (sumSize[2] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 3 - B sends    - changes the state by: " + (sumSize[3] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 4 - A receives - changes the state by: " + (sumSize[4] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 5 - B sends    - changes the state by: " + (sumSize[5] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 6 - B receives - changes the state by: " + (sumSize[6] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 7 - B receives - changes the state by: " + (sumSize[7] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 8 - B receives - changes the state by: " + (sumSize[8] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 9 - A receives - changes the state by: " + (sumSize[9] / iterations)
-				+ " byte on average.");
-
-		long auxilaryKuKemCiphertextSize[] = new long[numberOfCiphertexts];
-		boolean constantCiphertext[] = new boolean[numberOfCiphertexts];
-
-		long baseCiphertextSize = GraphLayout.parseInstance(ciphertext[0]).totalSize()
-				- kukemCiphertextSize[0][iterations];
-		System.out.println();
-		System.out.println("********************************");
-		System.out.println("Size of ciphertexts:");
-		System.out.println("Base ciphertext size (without kuKem ciphertext): " + baseCiphertextSize);
-		System.out.println("Individual ciphertext parts have size:");
-		printBaseCiphertextSizes(ciphertext[0]);
-		/**
-		 * Check if KuKem ciphertext sizes are constant
-		 */
-		for (int i = 0; i < numberOfCiphertexts; i++) {
-			auxilaryKuKemCiphertextSize[i] = kukemCiphertextSize[i][1];
-			constantCiphertext[i] = true;
-		}
-		for (int i = 2; i < iterations; i++) {
-			for (int j = 0; j < numberOfCiphertexts; j++) {
-				if (auxilaryKuKemCiphertextSize[j] != kukemCiphertextSize[j][i]) {
-					constantCiphertext[j] = false;
-				}
-			}
-		}
-		for (int i = 0; i < numberOfCiphertexts; i++) {
-			if (constantCiphertext[i] == true) {
-				System.out.println("KuKem ciphertext size of ciphertext " + i + " is constant with "
-						+ kukemCiphertextSize[i][1] + " byte.");
-			} else {
-				System.out.println("KuKem ciphertext size of ciphertext " + i + " is not constant. Check full data.");
-			}
-		}
-		for (int i = 0; i < 2; i++) {
-			System.out.println();
-		}
+		printResults(ASYNCH_WITH_CROSS, sumTime, sumSize, ciphertext, kukemCiphertextSize);
 	}
 
-	/**
-	 * Test "worst case" communication.
-	 * 
-	 * @param iterations - number of test iterations
-	 */
-	private static void testWorstCase(int iterations) {
-		System.out.println();
-		System.out.println("********************************");
-		System.out.println("Test Case 4: 'Worst Case' Communication");
-		System.out.println("********************************");
-		System.out.println("Communication sequence:");
-		System.out.println("Sender  -> Receiver ; generated Ciphertext");
-		System.out.println("A(0)_A0 ->          ; Ciphertext 0");
-		System.out.println("A(1)_A1 ->          ; Ciphertext 1");
-		System.out.println("A(2)_A2 ->          ; Ciphertext 2");
-		System.out.println("A(3)_A3 ->          ; Ciphertext 3");
-		System.out.println("A(4)_A4 ->          ; Ciphertext 4");
-		System.out.println("B(5)    -> A(6)     ; Ciphertext 5");
-		System.out.println("B(7)    -> A(8)     ; Ciphertext 6");
-		System.out.println("A(9)_A5 ->          ; Ciphertext 7");
-		System.out.println("	    -> B(10)_A0  ;");
-		System.out.println("	    -> B(11)_A1  ;");
-		System.out.println("	    -> B(12)_A2  ;");
-		System.out.println("	    -> B(13)_A3  ;");
-		System.out.println("	    -> B(14)_A4  ;");
-		System.out.println("	    -> B(15)_A5  ;");
-		System.out.println("Jump to 0.");
-		System.out.println("Repeat: " + iterations + " times.");
-		System.out.println("Messages cross while communicating.");
+	private static void performWorstCase(BrkeConstruction brkeUserA, BrkeConstruction brkeUserB, BrkeAssociatedData ad,
+			long[] startTime, long[] endTime, long[] sumTime, long[] startSize, long[] endSize, long[] sumSize,
+			BrkeCiphertext ciphertext[], long kukemCiphertextSize[][]) {
+		BrkeSendOutput sendOutputA[] = new BrkeSendOutput[WORSTCASE_BRKE_OUTPUT_A];
+		BrkeSendOutput sendOutputB[] = new BrkeSendOutput[WORSTCASE_BRKE_OUTPUT_B];
 
-		/**
-		 * Initialize BrkeAlgorithmSet for security level
-		 */
-		BrkeAlgorithmSet algorithmSet;
-		ECIESKemFactory kemFactory = new ECIESKemFactory();
-		BrkeKuKemAssociatedDataFactory associatedDataFactory = new BrkeKuKemAssociatedDataFactory();
-		BrkeKuKemFactory kuKemFactory = new BrkeKuKemFactory();
-		BrkeTranscriptFactory transcriptFactory = new BrkeTranscriptFactory();
-		HKDFRandomOracleFactory randomOracleFactory = new HKDFRandomOracleFactory();
-		if (securityLevel == 100) {
-			DLPChameleon100BitSignatureFactory signatureFactory = new DLPChameleon100BitSignatureFactory();
-			algorithmSet = new AlgorithmSet100Bit(kuKemFactory, kemFactory, randomOracleFactory, associatedDataFactory,
-					signatureFactory, transcriptFactory);
-		} else {
-			DLPChameleonSignatureFactory signatureFactory = new DLPChameleonSignatureFactory();
-			algorithmSet = new AlgorithmSet1(kuKemFactory, kemFactory, randomOracleFactory, associatedDataFactory,
-					signatureFactory, transcriptFactory);
-		}
-		/**
-		 * Initialize two Brke users
-		 */
-		byte[] seed = new byte[32];
-		randomness.nextBytes(seed);
-		SecureRandom initialRandomnessA = SecureRandomBuilder.createSeedableRandomness();
-		SecureRandom initialRandomnessB = SecureRandomBuilder.createSeedableRandomness();
-		initialRandomnessA.setSeed(seed);
-		initialRandomnessB.setSeed(seed);
-		BrkeAssociatedData ad = new BrkeAssociatedData(seed);
-		BrkeConstruction brkeUserA = new BrkeConstruction(initialRandomnessA, algorithmSet, true);
-		BrkeConstruction brkeUserB = new BrkeConstruction(initialRandomnessB, algorithmSet, false);
-		/**
-		 * Reset file
-		 */
-		try {
-			BufferedWriter writer = new BufferedWriter(new FileWriter(curveidentifier + "_WorstCase_fulldata.csv"));
-			String content = "Iteration;Step 0;Step 1;Step 2;Step 3;Step 4;Step 5;Step 6;Step 7;Step 8;Step 9;Step 10;Step 11;Step 12;Step 13;Step 14;Step 15;kuKemCiphertext size 0;kuKemCiphertext size 1;kuKemCiphertext size 2;kuKemCiphertext size 3;kuKemCiphertext size 4;kuKemCiphertext size 5;kuKemCiphertext size 6;kuKemCiphertext size 7;Userstate diff 0;Userstate diff 1;Userstate diff 2;Userstate diff 3;Userstate diff 4;Userstate diff 5;Userstate diff 6;Userstate diff 7;Userstate diff 8;Userstate diff 9";
-			writer.append(content);
-			writer.newLine();
-			writer.close();
-
-		} catch (IOException e) {
-		}
-		/**
-		 * Naming is corresponding to communication sequence numbers
-		 */
-		int communicationsteps = 16;
-		int numberOfCiphertexts = 8;
-		long startTime[] = new long[communicationsteps];
-		long endTime[] = new long[communicationsteps];
-		long sumTime[] = new long[communicationsteps];
-		for (int i = 0; i < communicationsteps; i++) {
-			sumTime[i] = 0;
-		}
-		long startSize[] = new long[communicationsteps];
-		long endSize[] = new long[communicationsteps];
-		long sumSize[] = new long[communicationsteps];
-		for (int i = 0; i < communicationsteps; i++) {
-			sumSize[i] = 0;
-		}
-
-		BrkeSendOutput sendOutputA[] = new BrkeSendOutput[6];
-		BrkeSendOutput sendOutputB[] = new BrkeSendOutput[2];
-
-		BrkeSymmetricKey sessionKeyA[] = new BrkeSymmetricKey[2];
-		BrkeSymmetricKey sessionKeyB[] = new BrkeSymmetricKey[6];
-
-		BrkeCiphertext ciphertext[] = new BrkeCiphertext[numberOfCiphertexts];
-		long kukemCiphertextSize[][] = new long[numberOfCiphertexts][iterations + 1];
+		BrkeSymmetricKey sessionKeyA[] = new BrkeSymmetricKey[WORSTCASE_BRKE_OUTPUT_B];
+		BrkeSymmetricKey sessionKeyB[] = new BrkeSymmetricKey[WORSTCASE_BRKE_OUTPUT_A];
 
 		System.out.println("Userstate A size before communication: " + GraphLayout.parseInstance(brkeUserA).totalSize()
 				+ " byte.");
 		System.out.println("Userstate B size before communication: " + GraphLayout.parseInstance(brkeUserB).totalSize()
 				+ " byte.");
 
-		for (int i = 0; i < iterations + 1; i++) {
+		for (int i = 0; i < ITERATIONS + 1; i++) {
 			/**
 			 * Measure time for the communication sequence. Check if session keys are
 			 * matching to ensure correct sequence.
@@ -1247,7 +824,7 @@ public class BrkeEvaluation {
 			/**
 			 * Get KuKem ciphertext size
 			 */
-			for (int j = 0; j < numberOfCiphertexts; j++) {
+			for (int j = 0; j < WORSTCASE_CIPHERTEXTS; j++) {
 				kukemCiphertextSize[j][i] = getKuKemCiphertextSize(ciphertext[j]);
 			}
 
@@ -1258,8 +835,8 @@ public class BrkeEvaluation {
 				/**
 				 * Sum of the measurements
 				 */
-				for (int j = 0; j < communicationsteps; j++) {
-					sumTime[j] = sumTime[j] + ((endTime[j] - startTime[j]) / 1000000);
+				for (int j = 0; j < WORSTCASE_COMMUNICATIONSTEPS; j++) {
+					sumTime[j] = sumTime[j] + ((endTime[j] - startTime[j]) / NANOSEC_PER_MS);
 					sumSize[j] = sumSize[j] + (endSize[j] - startSize[j]);
 				}
 			}
@@ -1271,13 +848,13 @@ public class BrkeEvaluation {
 				BufferedWriter writer = new BufferedWriter(
 						new FileWriter(curveidentifier + "_WorstCase_fulldata.csv", true));
 				String output = i + ";";
-				for (int j = 0; j < communicationsteps; j++) {
-					output += ((endTime[j] - startTime[j]) / 1000000) + ";";
+				for (int j = 0; j < WORSTCASE_COMMUNICATIONSTEPS; j++) {
+					output += ((endTime[j] - startTime[j]) / NANOSEC_PER_MS) + ";";
 				}
-				for (int j = 0; j < numberOfCiphertexts; j++) {
+				for (int j = 0; j < WORSTCASE_CIPHERTEXTS; j++) {
 					output += kukemCiphertextSize[j][i] + ";";
 				}
-				for (int j = 0; j < communicationsteps; j++) {
+				for (int j = 0; j < WORSTCASE_COMMUNICATIONSTEPS; j++) {
 					output += (endSize[j] - startSize[j]) + ";";
 				}
 				writer.append(output);
@@ -1286,91 +863,226 @@ public class BrkeEvaluation {
 			} catch (IOException e) {
 			}
 		}
-		/**
-		 * Print results to console.
-		 */
-		/**
-		 * Print timings
-		 */
-		System.out.println();
-		System.out.println("********************************");
-		System.out.println("Average duration:");
-		System.out
-				.println("Communication step 0 - A sends    - takes: " + (sumTime[0] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 1 - A sends    - takes: " + (sumTime[1] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 2 - A sends    - takes: " + (sumTime[2] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 3 - A sends    - takes: " + (sumTime[3] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 4 - A sends    - takes: " + (sumTime[4] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 5 - B sends    - takes: " + (sumTime[5] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 6 - A receives - takes: " + (sumTime[6] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 7 - B sends    - takes: " + (sumTime[7] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 8 - A receives - takes: " + (sumTime[8] / iterations) + " ms on average.");
-		System.out
-				.println("Communication step 9 - A sends    - takes: " + (sumTime[9] / iterations) + " ms on average.");
-		for (int i = 10; i < 16; i++) {
-			System.out.println("Communication step " + i + " - B receives - takes: " + (sumTime[i] / iterations)
-					+ " ms on average.");
-		}
+		printResults(WORSTCASE, sumTime, sumSize, ciphertext, kukemCiphertextSize);
+	}
 
-		System.out.println("********************************");
-		System.out.println("Average size change:");
-		System.out.println("Communication step 0 - A sends    - changes the state by: " + (sumSize[0] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 1 - A sends    - changes the state by: " + (sumSize[1] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 2 - A sends    - changes the state by: " + (sumSize[2] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 3 - A sends    - changes the state by: " + (sumSize[3] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 4 - A sends    - changes the state by: " + (sumSize[4] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 5 - B sends    - changes the state by: " + (sumSize[5] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 6 - A receives - changes the state by: " + (sumSize[6] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 7 - B sends    - changes the state by: " + (sumSize[7] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 8 - A receives - changes the state by: " + (sumSize[8] / iterations)
-				+ " byte on average.");
-		System.out.println("Communication step 9 - A sends    - changes the state by: " + (sumSize[9] / iterations)
-				+ " byte on average.");
-		for (int i = 10; i < 16; i++) {
-			System.out.println("Communication step " + i + " - B receives - changes the state by: "
-					+ (sumSize[i] / iterations) + " byte on average.");
+	private static void printResults(int communicationSequence, long[] sumTime, long[] sumSize,
+			BrkeCiphertext[] ciphertext, long[][] kukemCiphertextSize) {
+		int numberOfCiphertexts = 0;
+		switch (communicationSequence) {
+		case LOCKSTEP:
+			System.out.println();
+			System.out.println("********************************");
+			System.out.println("Average duration:");
+			System.out.println(
+					"Communication step 0 - A sends    - takes: " + (sumTime[0] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 1 - B receives - takes: " + (sumTime[1] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 2 - B sends    - takes: " + (sumTime[2] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 3 - A receives - takes: " + (sumTime[3] / ITERATIONS) + " ms on average.");
+
+			System.out.println("********************************");
+			System.out.println("Average size change:");
+			System.out.println("Communication step 0 - A sends    - changes the state by: " + (sumSize[0] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 1 - B receives - changes the state by: " + (sumSize[1] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 2 - B sends    - changes the state by: " + (sumSize[2] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 3 - A receives - changes the state by: " + (sumSize[3] / ITERATIONS)
+					+ " byte on average.");
+			numberOfCiphertexts = LOCKSTEP_CIPHERTEXTS;
+			break;
+		case ASYNCH_WO_CROSS:
+			System.out.println();
+			System.out.println("********************************");
+			System.out.println("Average duration:");
+			System.out.println(
+					"Communication step 0 - A sends    - takes: " + (sumTime[0] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 1 - B receives - takes: " + (sumTime[1] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 2 - A sends    - takes: " + (sumTime[2] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 3 - B receives - takes: " + (sumTime[3] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 4 - A sends    - takes: " + (sumTime[4] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 5 - B receives - takes: " + (sumTime[5] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 6 - B sends    - takes: " + (sumTime[6] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 7 - A receives - takes: " + (sumTime[7] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 8 - B sends    - takes: " + (sumTime[8] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 9 - A receives - takes: " + (sumTime[9] / ITERATIONS) + " ms on average.");
+
+			System.out.println("********************************");
+			System.out.println("Average size change:");
+			System.out.println("Communication step 0 - A sends    - changes the state by: " + (sumSize[0] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 1 - B receives - changes the state by: " + (sumSize[1] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 2 - A sends    - changes the state by: " + (sumSize[2] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 3 - B receives - changes the state by: " + (sumSize[3] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 4 - A sends    - changes the state by: " + (sumSize[4] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 5 - B receives - changes the state by: " + (sumSize[5] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 6 - B sends    - changes the state by: " + (sumSize[6] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 7 - A receives - changes the state by: " + (sumSize[7] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 8 - B sends    - changes the state by: " + (sumSize[8] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 9 - A receives - changes the state by: " + (sumSize[9] / ITERATIONS)
+					+ " byte on average.");
+			numberOfCiphertexts = ASYNCH_CIPHERTEXTS;
+			break;
+		case ASYNCH_WITH_CROSS:
+			System.out.println();
+			System.out.println("********************************");
+			System.out.println("Average duration:");
+			System.out.println(
+					"Communication step 0 - A sends    - takes: " + (sumTime[0] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 1 - A sends    - takes: " + (sumTime[1] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 2 - B sends    - takes: " + (sumTime[2] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 3 - B sends    - takes: " + (sumTime[3] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 4 - A receives - takes: " + (sumTime[4] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 5 - A sends    - takes: " + (sumTime[5] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 6 - B receives - takes: " + (sumTime[6] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 7 - B receives - takes: " + (sumTime[7] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 8 - B receives - takes: " + (sumTime[8] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 9 - A receives - takes: " + (sumTime[9] / ITERATIONS) + " ms on average.");
+
+			System.out.println("********************************");
+			System.out.println("Average size change:");
+			System.out.println("Communication step 0 - A sends    - changes the state by: " + (sumSize[0] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 1 - A sends    - changes the state by: " + (sumSize[1] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 2 - B sends    - changes the state by: " + (sumSize[2] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 3 - B sends    - changes the state by: " + (sumSize[3] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 4 - A receives - changes the state by: " + (sumSize[4] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 5 - B sends    - changes the state by: " + (sumSize[5] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 6 - B receives - changes the state by: " + (sumSize[6] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 7 - B receives - changes the state by: " + (sumSize[7] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 8 - B receives - changes the state by: " + (sumSize[8] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 9 - A receives - changes the state by: " + (sumSize[9] / ITERATIONS)
+					+ " byte on average.");
+			numberOfCiphertexts = ASYNCH_COMMUNICATIONSTEPS;
+			break;
+		case WORSTCASE:
+			System.out.println();
+			System.out.println("********************************");
+			System.out.println("Average duration:");
+			System.out.println(
+					"Communication step 0 - A sends    - takes: " + (sumTime[0] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 1 - A sends    - takes: " + (sumTime[1] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 2 - A sends    - takes: " + (sumTime[2] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 3 - A sends    - takes: " + (sumTime[3] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 4 - A sends    - takes: " + (sumTime[4] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 5 - B sends    - takes: " + (sumTime[5] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 6 - A receives - takes: " + (sumTime[6] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 7 - B sends    - takes: " + (sumTime[7] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 8 - A receives - takes: " + (sumTime[8] / ITERATIONS) + " ms on average.");
+			System.out.println(
+					"Communication step 9 - A sends    - takes: " + (sumTime[9] / ITERATIONS) + " ms on average.");
+			for (int i = 10; i < 16; i++) {
+				System.out.println("Communication step " + i + " - B receives - takes: " + (sumTime[i] / ITERATIONS)
+						+ " ms on average.");
+			}
+
+			System.out.println("********************************");
+			System.out.println("Average size change:");
+			System.out.println("Communication step 0 - A sends    - changes the state by: " + (sumSize[0] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 1 - A sends    - changes the state by: " + (sumSize[1] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 2 - A sends    - changes the state by: " + (sumSize[2] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 3 - A sends    - changes the state by: " + (sumSize[3] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 4 - A sends    - changes the state by: " + (sumSize[4] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 5 - B sends    - changes the state by: " + (sumSize[5] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 6 - A receives - changes the state by: " + (sumSize[6] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 7 - B sends    - changes the state by: " + (sumSize[7] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 8 - A receives - changes the state by: " + (sumSize[8] / ITERATIONS)
+					+ " byte on average.");
+			System.out.println("Communication step 9 - A sends    - changes the state by: " + (sumSize[9] / ITERATIONS)
+					+ " byte on average.");
+			for (int i = 10; i < 16; i++) {
+				System.out.println("Communication step " + i + " - B receives - changes the state by: "
+						+ (sumSize[i] / ITERATIONS) + " byte on average.");
+			}
+			numberOfCiphertexts = WORSTCASE_CIPHERTEXTS;
+			break;
 		}
 		long auxilaryKuKemCiphertextSize[] = new long[numberOfCiphertexts];
 		boolean constantCiphertext[] = new boolean[numberOfCiphertexts];
 
+		/**
+		 * Print Ciphertext sizes
+		 */
 		long baseCiphertextSize = GraphLayout.parseInstance(ciphertext[0]).totalSize()
-				- kukemCiphertextSize[0][iterations];
+				- kukemCiphertextSize[0][ITERATIONS];
 		System.out.println();
 		System.out.println("********************************");
 		System.out.println("Size of ciphertexts:");
 		System.out.println("Base ciphertext size (without kuKem ciphertext): " + baseCiphertextSize);
 		System.out.println("Individual ciphertext parts have size:");
-		printBaseCiphertextSizes(ciphertext[0]);
+		printCiphertextSizes(ciphertext[0]);
 		/**
-		 * Check if KuKem ciphertext sizes are constant
+		 * Check if the kuKem ciphertext is constant for one communication step
 		 */
 		for (int i = 0; i < numberOfCiphertexts; i++) {
 			auxilaryKuKemCiphertextSize[i] = kukemCiphertextSize[i][1];
 			constantCiphertext[i] = true;
 		}
-		for (int i = 2; i < iterations; i++) {
+		for (int i = 2; i < ITERATIONS; i++) {
 			for (int j = 0; j < numberOfCiphertexts; j++) {
 				if (auxilaryKuKemCiphertextSize[j] != kukemCiphertextSize[j][i]) {
 					constantCiphertext[j] = false;
 				}
 			}
 		}
+		/**
+		 * If kuKem ciphertext is constant, print the size, otherwise refer to full
+		 * data.
+		 */
 		for (int i = 0; i < numberOfCiphertexts; i++) {
 			if (constantCiphertext[i] == true) {
 				System.out.println("KuKem ciphertext size of ciphertext " + i + " is constant with "
@@ -1384,12 +1096,117 @@ public class BrkeEvaluation {
 		}
 	}
 
-	/**
-	 * Get the size of the KuKem ciphertext.
-	 * 
-	 * @param ciphertext
-	 * @return
-	 */
+	private static void initializeCSVFile(int communicationSequence) {
+		try {
+			BufferedWriter writer = null;
+			String content = null;
+			switch (communicationSequence) {
+			case LOCKSTEP:
+				writer = new BufferedWriter(new FileWriter(curveidentifier + LOCKSTEP_FILE_STRING));
+				content = LOCKSTEP_FILE_BEGINNING;
+				break;
+			case ASYNCH_WO_CROSS:
+				writer = new BufferedWriter(new FileWriter(curveidentifier + ASYNCH_WO_CROSS_FILE_STRING));
+				content = ASYNCH_FILE_BEGINNING;
+				break;
+			case ASYNCH_WITH_CROSS:
+				writer = new BufferedWriter(new FileWriter(curveidentifier + ASYNCH_WITH_CROSS_FILE_STRING));
+				content = ASYNCH_FILE_BEGINNING;
+				break;
+			case WORSTCASE:
+				writer = new BufferedWriter(new FileWriter(curveidentifier + WORSTCASE_FILE_STRING));
+				content = WORSTCASE_FILE_BEGINNING;
+				break;
+			}
+			writer.append(content);
+			writer.newLine();
+			writer.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void printCommunicationSequence(int communicationSequence) {
+		switch (communicationSequence) {
+		case LOCKSTEP:
+			System.out.println();
+			System.out.println("********************************");
+			System.out.println("Test Case 1: Lockstep communication");
+			System.out.println("********************************");
+			System.out.println("Communication sequence:");
+			System.out.println("Sender  -> Receiver ; generated Ciphertext");
+			System.out.println("A(0) -> B(1); Ciphertext 0");
+			System.out.println("B(2) -> A(3); Ciphertext 1");
+			System.out.println("Jump to 0.");
+			System.out.println("Repeat: " + ITERATIONS + " times.");
+			System.out.println("Every message is directly received.");
+			break;
+		case ASYNCH_WO_CROSS:
+			System.out.println();
+			System.out.println("********************************");
+			System.out.println("Test Case 2: Asynchronous communication without crossing messages");
+			System.out.println("********************************");
+			System.out.println("Communication sequence:");
+			System.out.println("Sender  -> Receiver ; generated Ciphertext");
+			System.out.println("A(0) -> B(1); Ciphertext 0");
+			System.out.println("A(2) -> B(3); Ciphertext 1");
+			System.out.println("A(4) -> B(5); Ciphertext 2");
+			System.out.println("B(6) -> A(7); Ciphertext 3");
+			System.out.println("B(8) -> A(9); Ciphertext 4");
+			System.out.println("Jump to 0.");
+			System.out.println("Repeat: " + ITERATIONS + " times.");
+			System.out.println("Every message is directly received.");
+			break;
+		case ASYNCH_WITH_CROSS:
+			System.out.println();
+			System.out.println("********************************");
+			System.out.println("Test Case 3: Asynchronous communication with crossing messages");
+			System.out.println("********************************");
+			System.out.println("Communication sequence:");
+			System.out.println("Sender  -> Receiver ; generated Ciphertext");
+			System.out.println("A(0)_A0 ->        ; Ciphertext 0");
+			System.out.println("A(1)_A1 ->        ; Ciphertext 1");
+			System.out.println("B(2)_B0 ->        ; Ciphertext 2");
+			System.out.println("B(3)_B1 ->        ; Ciphertext 3");
+			System.out.println("	    -> A(4)_B0;");
+			System.out.println("A(5)_A2 ->        ; Ciphertext 4");
+			System.out.println("	    -> B(6)_A0;");
+			System.out.println("	    -> B(7)_A1;");
+			System.out.println("	    -> B(8)_A2;");
+			System.out.println("	    -> A(9)_B1;");
+			System.out.println("Jump to 0.");
+			System.out.println("Repeat: " + ITERATIONS + " times.");
+			System.out.println("Messages cross while communicating.");
+			break;
+		case WORSTCASE:
+			System.out.println();
+			System.out.println("********************************");
+			System.out.println("Test Case 4: 'Worst Case' Communication");
+			System.out.println("********************************");
+			System.out.println("Communication sequence:");
+			System.out.println("Sender  -> Receiver ; generated Ciphertext");
+			System.out.println("A(0)_A0 ->          ; Ciphertext 0");
+			System.out.println("A(1)_A1 ->          ; Ciphertext 1");
+			System.out.println("A(2)_A2 ->          ; Ciphertext 2");
+			System.out.println("A(3)_A3 ->          ; Ciphertext 3");
+			System.out.println("A(4)_A4 ->          ; Ciphertext 4");
+			System.out.println("B(5)    -> A(6)     ; Ciphertext 5");
+			System.out.println("B(7)    -> A(8)     ; Ciphertext 6");
+			System.out.println("A(9)_A5 ->          ; Ciphertext 7");
+			System.out.println("	    -> B(10)_A0  ;");
+			System.out.println("	    -> B(11)_A1  ;");
+			System.out.println("	    -> B(12)_A2  ;");
+			System.out.println("	    -> B(13)_A3  ;");
+			System.out.println("	    -> B(14)_A4  ;");
+			System.out.println("	    -> B(15)_A5  ;");
+			System.out.println("Jump to 0.");
+			System.out.println("Repeat: " + ITERATIONS + " times.");
+			System.out.println("Messages cross while communicating.");
+			break;
+		}
+	}
+
 	private static long getKuKemCiphertextSize(BrkeCiphertext ciphertext) {
 		QueuedKuKemCiphertext queuedKuKemCiphertext = ciphertext.getCiphertext();
 		if (queuedKuKemCiphertext.getKuKemCiphertexts() == null) {
@@ -1399,13 +1216,7 @@ public class BrkeEvaluation {
 		}
 	}
 
-	/**
-	 * Print sizes of the base Brke ciphertext (without kuKem ciphertexts) to the
-	 * console.
-	 * 
-	 * @param ciphertext
-	 */
-	private static void printBaseCiphertextSizes(BrkeCiphertext ciphertext) {
+	private static void printCiphertextSizes(BrkeCiphertext ciphertext) {
 		BrkeKuKemPublicKey kuKemPublicKey = (BrkeKuKemPublicKey) ciphertext.getPublicKey();
 		DLPChameleonVerificationKey verificationKey = (DLPChameleonVerificationKey) ciphertext.getVerificationKey();
 		QueuedKuKemCiphertext queuedKuKemCiphertext = ciphertext.getCiphertext();
@@ -1427,16 +1238,13 @@ public class BrkeEvaluation {
 		System.out.println();
 	}
 
-	/**
-	 * Detects the sizes of the HIBE and prints them to console.
-	 */
 	private static void detectHibeSizes() {
 		/**
 		 * Get the size of the elements of the elliptic curve used in the HIBE. Detect
 		 * the elliptic curve and get the security level. Print the element sizes to the
-		 * console.
+		 * console. Use Size of smallest field element for the identity size.
 		 */
-		Hibe hibeAlgorithm = new Hibe(32);
+		Hibe hibeAlgorithm = new Hibe(BNP256_B12P381_FIELD_ELEMENT_SIZE);
 		int sizeOfFieldElement = hibeAlgorithm.getSizeOfFieldElement();
 		int sizeOfG1Element = hibeAlgorithm.getSizeOfG1Element();
 		int sizeOfG2Element = hibeAlgorithm.getSizeOfG2Element();
@@ -1464,15 +1272,15 @@ public class BrkeEvaluation {
 	 */
 	private static void detectEllipticCurve(int sizeOfFieldElement, int sizeOfG1Element) {
 		switch (sizeOfFieldElement) {
-		case 32:
-			if (sizeOfG1Element == 33) {
+		case BNP256_B12P381_FIELD_ELEMENT_SIZE:
+			if (sizeOfG1Element == BNP256_G1_ELEMENT_SIZE) {
 				curveidentifier = "BN-P256";
 				System.out.println("Elliptic curve for pairings is BN-P256");
 				System.out.println("Choosing algorithm set with theoretical symmetric equivalent strength: 100 Bit");
 				securityLevel = 100;
 				break;
 			} else {
-				if (sizeOfG1Element == 49) {
+				if (sizeOfG1Element == B12P381_G1_ELEMENT_SIZE) {
 					curveidentifier = "B12-P381";
 					System.out.println("Elliptic curve for pairings is B12-P381");
 					System.out
@@ -1486,15 +1294,15 @@ public class BrkeEvaluation {
 					break;
 				}
 			}
-		case 38:
-			if (sizeOfG1Element == 58) {
+		case B12P455_FIELD_ELEMENT_SIZE:
+			if (sizeOfG1Element == B12P455_G1_ELEMENT_SIZE) {
 				curveidentifier = "B12-P455";
 				System.out.println("Elliptic curve for pairings is B12-P455");
 				System.out.println("Choosing algorithm set with theoretical symmetric equivalent strength: 128 Bit");
 				break;
 			}
-		case 48:
-			if (sizeOfG1Element == 49) {
+		case BNP382_FIELD_ELEMENT_SIZE:
+			if (sizeOfG1Element == BNP382_G1_ELEMENT_SIZE) {
 				curveidentifier = "BN-P382";
 				System.out.println("Elliptic curve for pairings is BN-P382");
 				System.out.println("Choosing algorithm set with theoretical symmetric equivalent strength: 128 Bit");
