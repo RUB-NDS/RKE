@@ -869,11 +869,11 @@ public class BrkeEvaluation {
 	private static void printResults(int communicationSequence, long[] sumTime, long[] sumSize,
 			BrkeCiphertext[] ciphertext, long[][] kukemCiphertextSize) {
 		int numberOfCiphertexts = 0;
+		System.out.println();
+		System.out.println("********************************");
+		System.out.println("Average duration:");
 		switch (communicationSequence) {
 		case LOCKSTEP:
-			System.out.println();
-			System.out.println("********************************");
-			System.out.println("Average duration:");
 			System.out.println(
 					"Communication step 0 - A sends    - takes: " + (sumTime[0] / ITERATIONS) + " ms on average.");
 			System.out.println(
@@ -896,9 +896,6 @@ public class BrkeEvaluation {
 			numberOfCiphertexts = LOCKSTEP_CIPHERTEXTS;
 			break;
 		case ASYNCH_WO_CROSS:
-			System.out.println();
-			System.out.println("********************************");
-			System.out.println("Average duration:");
 			System.out.println(
 					"Communication step 0 - A sends    - takes: " + (sumTime[0] / ITERATIONS) + " ms on average.");
 			System.out.println(
@@ -945,9 +942,6 @@ public class BrkeEvaluation {
 			numberOfCiphertexts = ASYNCH_CIPHERTEXTS;
 			break;
 		case ASYNCH_WITH_CROSS:
-			System.out.println();
-			System.out.println("********************************");
-			System.out.println("Average duration:");
 			System.out.println(
 					"Communication step 0 - A sends    - takes: " + (sumTime[0] / ITERATIONS) + " ms on average.");
 			System.out.println(
@@ -994,9 +988,6 @@ public class BrkeEvaluation {
 			numberOfCiphertexts = ASYNCH_CIPHERTEXTS;
 			break;
 		case WORSTCASE:
-			System.out.println();
-			System.out.println("********************************");
-			System.out.println("Average duration:");
 			System.out.println(
 					"Communication step 0 - A sends    - takes: " + (sumTime[0] / ITERATIONS) + " ms on average.");
 			System.out.println(
@@ -1128,23 +1119,19 @@ public class BrkeEvaluation {
 	}
 
 	private static void printCommunicationSequence(int communicationSequence) {
+		System.out.println();
+		System.out.println("********************************");
 		switch (communicationSequence) {
 		case LOCKSTEP:
-			System.out.println();
-			System.out.println("********************************");
 			System.out.println("Test Case 1: Lockstep communication");
 			System.out.println("********************************");
 			System.out.println("Communication sequence:");
 			System.out.println("Sender  -> Receiver ; generated Ciphertext");
 			System.out.println("A(0) -> B(1); Ciphertext 0");
 			System.out.println("B(2) -> A(3); Ciphertext 1");
-			System.out.println("Jump to 0.");
-			System.out.println("Repeat: " + ITERATIONS + " times.");
 			System.out.println("Every message is directly received.");
 			break;
 		case ASYNCH_WO_CROSS:
-			System.out.println();
-			System.out.println("********************************");
 			System.out.println("Test Case 2: Asynchronous communication without crossing messages");
 			System.out.println("********************************");
 			System.out.println("Communication sequence:");
@@ -1154,13 +1141,9 @@ public class BrkeEvaluation {
 			System.out.println("A(4) -> B(5); Ciphertext 2");
 			System.out.println("B(6) -> A(7); Ciphertext 3");
 			System.out.println("B(8) -> A(9); Ciphertext 4");
-			System.out.println("Jump to 0.");
-			System.out.println("Repeat: " + ITERATIONS + " times.");
 			System.out.println("Every message is directly received.");
 			break;
 		case ASYNCH_WITH_CROSS:
-			System.out.println();
-			System.out.println("********************************");
 			System.out.println("Test Case 3: Asynchronous communication with crossing messages");
 			System.out.println("********************************");
 			System.out.println("Communication sequence:");
@@ -1175,13 +1158,9 @@ public class BrkeEvaluation {
 			System.out.println("	    -> B(7)_A1;");
 			System.out.println("	    -> B(8)_A2;");
 			System.out.println("	    -> A(9)_B1;");
-			System.out.println("Jump to 0.");
-			System.out.println("Repeat: " + ITERATIONS + " times.");
 			System.out.println("Messages cross while communicating.");
 			break;
 		case WORSTCASE:
-			System.out.println();
-			System.out.println("********************************");
 			System.out.println("Test Case 4: 'Worst Case' Communication");
 			System.out.println("********************************");
 			System.out.println("Communication sequence:");
@@ -1200,11 +1179,12 @@ public class BrkeEvaluation {
 			System.out.println("	    -> B(13)_A3  ;");
 			System.out.println("	    -> B(14)_A4  ;");
 			System.out.println("	    -> B(15)_A5  ;");
-			System.out.println("Jump to 0.");
-			System.out.println("Repeat: " + ITERATIONS + " times.");
 			System.out.println("Messages cross while communicating.");
 			break;
 		}
+		System.out.println("Jump to 0.");
+		System.out.println("Repeat: " + ITERATIONS + " times.");
+
 	}
 
 	private static long getKuKemCiphertextSize(BrkeCiphertext ciphertext) {
