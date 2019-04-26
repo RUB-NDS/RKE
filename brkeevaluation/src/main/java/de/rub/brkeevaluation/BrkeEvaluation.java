@@ -991,7 +991,7 @@ public class BrkeEvaluation {
 					+ " byte on average.");
 			System.out.println("Communication step 9 - A receives - changes the state by: " + (sumSize[9] / ITERATIONS)
 					+ " byte on average.");
-			numberOfCiphertexts = ASYNCH_COMMUNICATIONSTEPS;
+			numberOfCiphertexts = ASYNCH_CIPHERTEXTS;
 			break;
 		case WORSTCASE:
 			System.out.println();
