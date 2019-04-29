@@ -301,7 +301,7 @@ public class BrkeEvaluation {
 			 */
 			try {
 				BufferedWriter writer = new BufferedWriter(
-						new FileWriter(curveidentifier + "_LockStep_fulldata.csv", true));
+						new FileWriter(curveidentifier + LOCKSTEP_FILE_STRING, true));
 				String output = i + ";";
 				for (int j = 0; j < LOCKSTEP_COMMUNICATIONSTEPS; j++) {
 					output += ((endTime[j] - startTime[j]) / NANOSEC_PER_MS) + ";";
@@ -468,7 +468,7 @@ public class BrkeEvaluation {
 			 */
 			try {
 				BufferedWriter writer = new BufferedWriter(
-						new FileWriter(curveidentifier + "_AsynchWoCross_fulldata.csv", true));
+						new FileWriter(curveidentifier + ASYNCH_WO_CROSS_FILE_STRING, true));
 				String output = i + ";";
 				for (int j = 0; j < ASYNCH_COMMUNICATIONSTEPS; j++) {
 					output += ((endTime[j] - startTime[j]) / NANOSEC_PER_MS) + ";";
@@ -648,7 +648,7 @@ public class BrkeEvaluation {
 			 */
 			try {
 				BufferedWriter writer = new BufferedWriter(
-						new FileWriter(curveidentifier + "_AsynchWithCross_fulldata.csv", true));
+						new FileWriter(curveidentifier + ASYNCH_WITH_CROSS_FILE_STRING, true));
 				String output = i + ";";
 				for (int j = 0; j < ASYNCH_COMMUNICATIONSTEPS; j++) {
 					output += ((endTime[j] - startTime[j]) / NANOSEC_PER_MS) + ";";
@@ -846,7 +846,7 @@ public class BrkeEvaluation {
 			 */
 			try {
 				BufferedWriter writer = new BufferedWriter(
-						new FileWriter(curveidentifier + "_WorstCase_fulldata.csv", true));
+						new FileWriter(curveidentifier + WORSTCASE_FILE_STRING, true));
 				String output = i + ";";
 				for (int j = 0; j < WORSTCASE_COMMUNICATIONSTEPS; j++) {
 					output += ((endTime[j] - startTime[j]) / NANOSEC_PER_MS) + ";";
