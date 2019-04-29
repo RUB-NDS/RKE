@@ -385,5 +385,25 @@ public class Hibe {
 
 		return new HibeSecretKey(delegatedSecretKey, secretKey.getEncapsulationKey());
 	}
+	
+	public int getSizeOfFieldElement() {
+		return getSizeOfBnModZp();
+	}
 
+	public int getSizeOfG1Element() {
+		return getSizeOfG1();
+	}
+	
+	public int getSizeOfG2Element() {
+		return getSizeOfG2();
+	}
+	
+	public int getSizeOfGTElement(boolean compressed) {
+		if(compressed) {
+			return getSizeOfGT();
+		} else {
+			return getSizeOfuncompressedGT();
+		}
+	}
+	
 }
