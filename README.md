@@ -1,4 +1,4 @@
-# RatchetedKeyExchangeInstantiation
+# Ratcheted Key Exchange
 Implementation of ratcheted key exchange protocol ([Poettering and Rösler, CRYPTO 2018](https://eprint.iacr.org/2018/296.pdf)) by Marco Smeets
 
 ## Build Instructions
@@ -13,3 +13,6 @@ You can compile and install the project by calling
 `mvn install`
 and run the Unit tests by calling
 `mvn test`.
+
+## Important Note
+This code is aimed to be an accessible proof of concept implementation. Please do not use it in production as there might be implementation bugs (affecting security).
